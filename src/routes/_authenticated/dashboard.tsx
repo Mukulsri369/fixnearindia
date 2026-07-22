@@ -140,8 +140,18 @@ function DashboardPage() {
                     </Link>
                   ) : null}
                   {!isTechnician ? (
+                    <Link to="/requests">
+                      <Button variant="outline" className="w-full">My Requests</Button>
+                    </Link>
+                  ) : null}
+                  {!isTechnician ? (
                     <Link to="/register-technician">
                       <Button variant="outline" className="w-full">Become a Technician</Button>
+                    </Link>
+                  ) : null}
+                  {isTechnician ? (
+                    <Link to="/technician-requests">
+                      <Button className="w-full">My Assignments</Button>
                     </Link>
                   ) : null}
                   <Link to="/profile">
