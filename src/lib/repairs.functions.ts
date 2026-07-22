@@ -203,7 +203,7 @@ export const getTechnicianAssignments = createServerFn({ method: "GET" })
       .from("request_assignments")
       .select(
         `id, status, accepted_at, completed_at, created_at,
-        repair_requests (id, brand, model, issue_description, priority, city, pincode, preferred_visit_time, status, categories (name), profiles (full_name, phone))`
+        repair_requests (id, brand, model, issue_description, priority, city, pincode, address, preferred_visit_time, status, categories (name), profiles (full_name, phone))`
       )
       .eq("technician_id", technician.id)
       .order("created_at", { ascending: false });

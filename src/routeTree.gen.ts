@@ -17,6 +17,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedTechnicianRequestsRouteImport } from './routes/_authenticated/technician-requests'
 import { Route as AuthenticatedRequestsRouteImport } from './routes/_authenticated/requests'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedNewRequestRouteImport } from './routes/_authenticated/new-request'
@@ -62,6 +63,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedTechnicianRequestsRoute =
+  AuthenticatedTechnicianRequestsRouteImport.update({
+    id: '/technician-requests',
+    path: '/technician-requests',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedRequestsRoute = AuthenticatedRequestsRouteImport.update({
   id: '/requests',
   path: '/requests',
@@ -100,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/new-request': typeof AuthenticatedNewRequestRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/requests': typeof AuthenticatedRequestsRoute
+  '/technician-requests': typeof AuthenticatedTechnicianRequestsRoute
   '/request/$id': typeof AuthenticatedRequestIdRoute
 }
 export interface FileRoutesByTo {
@@ -114,6 +122,7 @@ export interface FileRoutesByTo {
   '/new-request': typeof AuthenticatedNewRequestRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/requests': typeof AuthenticatedRequestsRoute
+  '/technician-requests': typeof AuthenticatedTechnicianRequestsRoute
   '/request/$id': typeof AuthenticatedRequestIdRoute
 }
 export interface FileRoutesById {
@@ -130,6 +139,7 @@ export interface FileRoutesById {
   '/_authenticated/new-request': typeof AuthenticatedNewRequestRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/requests': typeof AuthenticatedRequestsRoute
+  '/_authenticated/technician-requests': typeof AuthenticatedTechnicianRequestsRoute
   '/_authenticated/request/$id': typeof AuthenticatedRequestIdRoute
 }
 export interface FileRouteTypes {
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
     | '/new-request'
     | '/profile'
     | '/requests'
+    | '/technician-requests'
     | '/request/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/new-request'
     | '/profile'
     | '/requests'
+    | '/technician-requests'
     | '/request/$id'
   id:
     | '__root__'
@@ -175,6 +187,7 @@ export interface FileRouteTypes {
     | '/_authenticated/new-request'
     | '/_authenticated/profile'
     | '/_authenticated/requests'
+    | '/_authenticated/technician-requests'
     | '/_authenticated/request/$id'
   fileRoutesById: FileRoutesById
 }
@@ -247,6 +260,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/technician-requests': {
+      id: '/_authenticated/technician-requests'
+      path: '/technician-requests'
+      fullPath: '/technician-requests'
+      preLoaderRoute: typeof AuthenticatedTechnicianRequestsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/requests': {
       id: '/_authenticated/requests'
       path: '/requests'
@@ -290,6 +310,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNewRequestRoute: typeof AuthenticatedNewRequestRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedRequestsRoute: typeof AuthenticatedRequestsRoute
+  AuthenticatedTechnicianRequestsRoute: typeof AuthenticatedTechnicianRequestsRoute
   AuthenticatedRequestIdRoute: typeof AuthenticatedRequestIdRoute
 }
 
@@ -298,6 +319,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNewRequestRoute: AuthenticatedNewRequestRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedRequestsRoute: AuthenticatedRequestsRoute,
+  AuthenticatedTechnicianRequestsRoute: AuthenticatedTechnicianRequestsRoute,
   AuthenticatedRequestIdRoute: AuthenticatedRequestIdRoute,
 }
 
