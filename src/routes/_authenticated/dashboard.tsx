@@ -41,7 +41,8 @@ function DashboardPage() {
   const { data: profile } = useSuspenseQuery(profileQueryOptions());
   const { data: roleData } = useSuspenseQuery(roleQueryOptions());
   const role = roleData?.role ?? "customer";
-  const isTechnician = role === "technician";
+  const isTechnician = (roleData as any)?.isTechnician ?? role === "technician";
+  const isAdmin = (roleData as any)?.isAdmin ?? false;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const doSignOut = useServerFn(signOut);
@@ -150,8 +151,18 @@ function DashboardPage() {
                     </Link>
                   ) : null}
                   {isTechnician ? (
-                    <Link to="/technician-requests">
-                      <Button className="w-full">My Assignments</Button>
+                    <>
+                      <Link to="/available-jobs">
+                        <Button className="w-full">Find Nearby Jobs</Button>
+                      </Link>
+                      <Link to="/technician-requests">
+                        <Button variant="outline" className="w-full">My Jobs</Button>
+                      </Link>
+                    </>
+                  ) : null}
+                  {isAdmin ? (
+                    <Link to="/admin">
+                      <Button variant="outline" className="w-full">Technician Approvals</Button>
                     </Link>
                   ) : null}
                   <Link to="/profile">

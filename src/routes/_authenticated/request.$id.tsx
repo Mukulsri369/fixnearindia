@@ -1,16 +1,22 @@
-import { createFileRoute, useParams } from "@tanstack/react-router";
-import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
-import { queryOptions } from "@tanstack/react-query";
-import { useState } from "react";
+import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, MapPin, Phone, User } from "lucide-react";
+import { ArrowLeft, Loader2, MapPin, Phone, Star, User } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "@tanstack/react-router";
-import { toast } from "sonner";
-import { getRepairRequest, findMatchingTechnicians, requestAssignment } from "@/lib/repairs.functions";
+import { RequestChat } from "@/components/RequestChat";
+import { getRepairRequest } from "@/lib/repairs.functions";
+import {
+  getInvoiceForRequest,
+  getRequestInterests,
+  postRequestMessage,
+  selectTechnician,
+  updateInvoiceStatus,
+} from "@/lib/marketplace.functions";
 
 const requestQueryOptions = (requestId: string) =>
   queryOptions({
@@ -18,11 +24,25 @@ const requestQueryOptions = (requestId: string) =>
     queryFn: () => getRepairRequest({ data: { requestId } }),
   });
 
+const interestsQueryOptions = (requestId: string) =>
+  queryOptions({
+    queryKey: ["request-interests", requestId],
+    queryFn: () => getRequestInterests({ data: { requestId } }),
+  });
+
+const invoiceQueryOptions = (requestId: string) =>
+  queryOptions({
+    queryKey: ["request-invoice", requestId],
+    queryFn: () => getInvoiceForRequest({ data: { requestId } }),
+  });
+
 export const Route = createFileRoute("/_authenticated/request/$id")({
   head: () => ({
     meta: [
       { title: "Request Details — FixNear India" },
-      { name: "description", content: "View repair request details and find matching technicians." },
+      { name: "description", content: "Chat with technicians, pick one and settle the invoice for your repair." },
+      { property: "og:title", content: "Request Details — FixNear India" },
+      { property: "og:description", content: "Chat with technicians and settle your repair invoice on FixNear India." },
     ],
   }),
   loader: ({ context, params }) => context.queryClient.ensureQueryData(requestQueryOptions(params.id)),
@@ -32,38 +52,49 @@ export const Route = createFileRoute("/_authenticated/request/$id")({
 function RequestDetailPage() {
   const { id } = useParams({ from: "/_authenticated/request/$id" });
   const { data: request } = useSuspenseQuery(requestQueryOptions(id));
+  const { data: interests } = useSuspenseQuery(interestsQueryOptions(id));
+  const { data: invoice } = useSuspenseQuery(invoiceQueryOptions(id));
+
   const queryClient = useQueryClient();
-  const doFind = useServerFn(findMatchingTechnicians);
-  const doRequest = useServerFn(requestAssignment);
-  const [technicians, setTechnicians] = useState<any[]>([]);
-  const [isMatching, setIsMatching] = useState(false);
-  const [requestingId, setRequestingId] = useState<string | null>(null);
+  const doSelect = useServerFn(selectTechnician);
+  const doPost = useServerFn(postRequestMessage);
+  const doInvoice = useServerFn(updateInvoiceStatus);
+  const [busy, setBusy] = useState<string | null>(null);
 
-  const handleFind = async () => {
-    setIsMatching(true);
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["repair-request", id] });
+    queryClient.invalidateQueries({ queryKey: ["request-interests", id] });
+    queryClient.invalidateQueries({ queryKey: ["request-invoice", id] });
+  };
+
+  const handleSelect = async (assignmentId: string) => {
+    setBusy(assignmentId);
     try {
-      const matched = await doFind({ data: { requestId: id } });
-      setTechnicians(matched);
+      await doSelect({ data: { requestId: id, assignmentId } });
+      toast.success("Technician assigned");
+      refresh();
     } catch (err: any) {
-      toast.error(err.message || "Failed to find technicians");
+      toast.error(err.message || "Failed to assign technician");
     } finally {
-      setIsMatching(false);
+      setBusy(null);
     }
   };
 
-  const handleRequest = async (technicianId: string) => {
-    setRequestingId(technicianId);
+  const handleInvoice = async (action: "approve" | "pay") => {
+    if (!invoice) return;
+    setBusy(action);
     try {
-      await doRequest({ data: { requestId: id, technicianId } });
-      toast.success("Assignment requested");
-      queryClient.invalidateQueries({ queryKey: ["repair-request", id] });
-      setTechnicians((prev) => prev.filter((t) => t.id !== technicianId));
+      await doInvoice({ data: { invoiceId: invoice.id, action } });
+      toast.success(action === "approve" ? "Invoice approved" : "Payment recorded — request closed");
+      refresh();
     } catch (err: any) {
-      toast.error(err.message || "Failed to request assignment");
+      toast.error(err.message || "Failed to update invoice");
     } finally {
-      setRequestingId(null);
+      setBusy(null);
     }
   };
+
+  const accepted = (interests ?? []).find((i: any) => i.status !== "rejected" && i.status !== "interested");
 
   return (
     <div className="px-4 py-8 sm:px-6 lg:px-8">
@@ -72,7 +103,7 @@ function RequestDetailPage() {
           <ArrowLeft className="h-4 w-4" /> Back to requests
         </Link>
 
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <Card>
             <CardHeader>
               <div className="flex items-start justify-between gap-4">
@@ -84,11 +115,9 @@ function RequestDetailPage() {
                     {request.categories?.name} • {request.city}, {request.pincode}
                   </p>
                 </div>
-                <div className="flex gap-2">
-                  <Badge variant={request.status === "open" ? "secondary" : "default"}>{request.status}</Badge>
-                  <Badge variant={request.priority === "urgent" || request.priority === "high" ? "destructive" : "outline"}>
-                    {request.priority}
-                  </Badge>
+                <div className="flex flex-wrap justify-end gap-2">
+                  <Badge>{request.status}</Badge>
+                  <Badge variant="outline">{request.priority}</Badge>
                 </div>
               </div>
             </CardHeader>
@@ -96,67 +125,136 @@ function RequestDetailPage() {
               <p className="text-sm leading-relaxed">{request.issue_description}</p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  {request.address || "No address provided"}
+                  <MapPin className="h-4 w-4" /> {request.address || "No address provided"}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  Preferred visit: {request.preferred_visit_time ? new Date(request.preferred_visit_time).toLocaleString() : "Flexible"}
+                  Preferred visit:{" "}
+                  {request.preferred_visit_time ? new Date(request.preferred_visit_time).toLocaleString() : "Flexible"}
                 </div>
               </div>
-
-              {request.status === "open" && (
-                <Button onClick={handleFind} disabled={isMatching} className="w-full sm:w-auto">
-                  {isMatching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Find Matching Technicians
-                </Button>
-              )}
-
-              {request.request_assignments && request.request_assignments.length > 0 && (
-                <div className="rounded-lg border p-4">
-                  <h3 className="font-semibold">Assigned Technician</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {request.request_assignments[0].technicians?.profiles?.full_name} ({request.request_assignments[0].status})
-                  </p>
-                </div>
-              )}
             </CardContent>
           </Card>
 
-          {technicians.length > 0 && (
-            <div className="mt-8">
-              <h2 className="mb-4 text-xl font-semibold">Available Technicians</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {technicians.map((tech) => (
-                  <Card key={tech.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                          <User className="h-5 w-5" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium">{tech.profiles?.full_name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {tech.experience_years} years • {tech.city} • {tech.service_radius_km} km radius
-                          </p>
-                          <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                            <Phone className="h-3 w-3" /> {tech.profiles?.phone}
-                          </p>
-                          <Button
-                            size="sm"
-                            className="mt-3 w-full"
-                            disabled={requestingId === tech.id}
-                            onClick={() => handleRequest(tech.id)}
-                          >
-                            {requestingId === tech.id ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : "Request Assignment"}
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
+          {/* Invoice */}
+          {invoice && (
+            <Card className="mt-8">
+              <CardHeader>
+                <CardTitle>Invoice</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-3xl font-bold">₹{Number(invoice.amount).toFixed(2)}</p>
+                <p className="text-sm text-muted-foreground">
+                  From {invoice.technicians?.profiles?.full_name ?? "your technician"} •{" "}
+                  <span className="capitalize">{invoice.status}</span>
+                </p>
+                <div className="rounded-lg border p-3 text-sm">
+                  <p className="font-medium">Work done</p>
+                  <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{invoice.repair_notes}</p>
+                  {invoice.parts_replaced && (
+                    <>
+                      <p className="mt-3 font-medium">Parts replaced</p>
+                      <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{invoice.parts_replaced}</p>
+                    </>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {invoice.status === "issued" && (
+                    <Button disabled={busy === "approve"} onClick={() => handleInvoice("approve")}>
+                      {busy === "approve" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      Approve repair
+                    </Button>
+                  )}
+                  {invoice.status === "approved" && (
+                    <Button disabled={busy === "pay"} onClick={() => handleInvoice("pay")}>
+                      {busy === "pay" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      Mark as paid
+                    </Button>
+                  )}
+                  {invoice.status === "paid" && <Badge>Paid — request closed</Badge>}
+                </div>
+              </CardContent>
+            </Card>
           )}
+
+          {/* Interested technicians */}
+          <div className="mt-8">
+            <h2 className="mb-4 text-xl font-semibold">
+              {accepted ? "Assigned technician" : `Interested technicians (${interests?.length ?? 0})`}
+            </h2>
+
+            {(interests ?? []).length === 0 ? (
+              <div className="rounded-xl border bg-card p-10 text-center">
+                <p className="text-sm text-muted-foreground">
+                  No technician has responded yet. Approved technicians nearby will see your request and send offers.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {(interests ?? [])
+                  .filter((i: any) => (accepted ? i.id === accepted.id : true))
+                  .map((interest: any) => (
+                    <Card key={interest.id}>
+                      <CardContent className="space-y-3 p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                            <User className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <p className="font-medium">{interest.technicians?.profiles?.full_name}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {interest.technicians?.business_name
+                                    ? `${interest.technicians.business_name} • `
+                                    : ""}
+                                  {interest.technicians?.experience_years} yrs • {interest.technicians?.city}
+                                </p>
+                                <p className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
+                                  <span className="flex items-center gap-1">
+                                    <Star className="h-3 w-3" /> {interest.technicians?.avg_rating ?? 0}
+                                  </span>
+                                  {accepted?.id === interest.id && interest.technicians?.profiles?.phone && (
+                                    <span className="flex items-center gap-1">
+                                      <Phone className="h-3 w-3" /> {interest.technicians.profiles.phone}
+                                    </span>
+                                  )}
+                                </p>
+                              </div>
+                              <Badge variant={interest.status === "interested" ? "secondary" : "default"}>
+                                {interest.status}
+                              </Badge>
+                            </div>
+
+                            {!accepted && interest.status === "interested" && (
+                              <Button
+                                size="sm"
+                                className="mt-3"
+                                disabled={busy === interest.id}
+                                onClick={() => handleSelect(interest.id)}
+                              >
+                                {busy === interest.id ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : null}
+                                Choose this technician
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+
+                        <RequestChat
+                          requestId={id}
+                          technicianId={interest.technicians?.id}
+                          title={`Chat with ${interest.technicians?.profiles?.full_name ?? "technician"}`}
+                          onSend={(body) =>
+                            doPost({
+                              data: { requestId: id, technicianId: interest.technicians?.id ?? null, body },
+                            })
+                          }
+                        />
+                      </CardContent>
+                    </Card>
+                  ))}
+              </div>
+            )}
+          </div>
         </motion.div>
       </div>
     </div>

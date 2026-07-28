@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+const PLATFORM_ADMIN_EMAIL = "mukul.srivastava.025@gmail.com";
+
 const technicianSchema = z.object({
   fullName: z.string().min(2).max(100),
   phone: z.string().min(10).max(15),
@@ -34,15 +36,22 @@ export const getCurrentUserRole = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", context.userId)
-      .maybeSingle();
+      .eq("user_id", context.userId);
 
     if (error) {
       throw new Error(`Failed to load role: ${error.message}`);
     }
 
-    return { role: data?.role ?? null };
+    const roles = (data ?? []).map((r) => r.role as string);
+    const role = roles.includes("admin")
+      ? "admin"
+      : roles.includes("technician")
+        ? "technician"
+        : (roles[0] ?? null);
+
+    return { role, roles, isAdmin: roles.includes("admin"), isTechnician: roles.includes("technician") };
   });
+
 
 export const createProfileIfMissing = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -70,7 +79,17 @@ export const createProfileIfMissing = createServerFn({ method: "POST" })
       }
     }
 
+    // The platform owner is always an admin.
+    const email = String((context.claims as any)?.email ?? "").toLowerCase();
+    if (email === PLATFORM_ADMIN_EMAIL) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      await supabaseAdmin
+        .from("user_roles")
+        .upsert({ user_id: context.userId, role: "admin" }, { onConflict: "user_id, role" });
+    }
+
     return { ok: true };
+
   });
 
 export const registerTechnician = createServerFn({ method: "POST" })
