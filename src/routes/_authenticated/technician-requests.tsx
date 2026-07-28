@@ -58,7 +58,21 @@ function TechnicianRequestsPage() {
           <p className="mt-1 text-muted-foreground">Review and manage your repair jobs.</p>
         </div>
 
-        {assignments.length === 0 ? (
+        {!isTechnician ? (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-xl border bg-card p-12 text-center"
+          >
+            <h2 className="text-lg font-semibold">You're not registered as a technician</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Register your repair business to start receiving job assignments.
+            </p>
+            <Button asChild className="mt-6">
+              <Link to="/register-technician">Register as a technician</Link>
+            </Button>
+          </motion.div>
+        ) : assignments.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -69,6 +83,7 @@ function TechnicianRequestsPage() {
               New assignments will appear here when customers request your services.
             </p>
           </motion.div>
+
         ) : (
           <div className="space-y-4">
             {assignments.map((assignment) => {
