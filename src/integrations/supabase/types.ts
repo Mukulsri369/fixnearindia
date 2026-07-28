@@ -44,6 +44,76 @@ export type Database = {
         }
         Relationships: []
       }
+      invoices: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          assignment_id: string
+          created_at: string
+          customer_id: string
+          id: string
+          paid_at: string | null
+          parts_replaced: string | null
+          repair_notes: string | null
+          repair_request_id: string
+          status: string
+          technician_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          assignment_id: string
+          created_at?: string
+          customer_id: string
+          id?: string
+          paid_at?: string | null
+          parts_replaced?: string | null
+          repair_notes?: string | null
+          repair_request_id: string
+          status?: string
+          technician_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          assignment_id?: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          paid_at?: string | null
+          parts_replaced?: string | null
+          repair_notes?: string | null
+          repair_request_id?: string
+          status?: string
+          technician_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: true
+            referencedRelation: "request_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_repair_request_id_fkey"
+            columns: ["repair_request_id"]
+            isOneToOne: false
+            referencedRelation: "repair_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string | null
@@ -207,9 +277,12 @@ export type Database = {
       request_assignments: {
         Row: {
           accepted_at: string | null
+          amount: number | null
           completed_at: string | null
           created_at: string
           id: string
+          parts_replaced: string | null
+          repair_notes: string | null
           repair_request_id: string
           status: string | null
           technician_id: string
@@ -217,9 +290,12 @@ export type Database = {
         }
         Insert: {
           accepted_at?: string | null
+          amount?: number | null
           completed_at?: string | null
           created_at?: string
           id?: string
+          parts_replaced?: string | null
+          repair_notes?: string | null
           repair_request_id: string
           status?: string | null
           technician_id: string
@@ -227,9 +303,12 @@ export type Database = {
         }
         Update: {
           accepted_at?: string | null
+          amount?: number | null
           completed_at?: string | null
           created_at?: string
           id?: string
+          parts_replaced?: string | null
+          repair_notes?: string | null
           repair_request_id?: string
           status?: string | null
           technician_id?: string
@@ -245,6 +324,51 @@ export type Database = {
           },
           {
             foreignKeyName: "request_assignments_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      request_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          repair_request_id: string
+          sender_id: string
+          sender_role: string
+          technician_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          repair_request_id: string
+          sender_id: string
+          sender_role?: string
+          technician_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          repair_request_id?: string
+          sender_id?: string
+          sender_role?: string
+          technician_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "request_messages_repair_request_id_fkey"
+            columns: ["repair_request_id"]
+            isOneToOne: false
+            referencedRelation: "repair_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "request_messages_technician_id_fkey"
             columns: ["technician_id"]
             isOneToOne: false
             referencedRelation: "technicians"
