@@ -77,7 +77,17 @@ export const createProfileIfMissing = createServerFn({ method: "POST" })
       }
     }
 
+    // The platform owner is always an admin.
+    const email = String((context.claims as any)?.email ?? "").toLowerCase();
+    if (email === PLATFORM_ADMIN_EMAIL) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      await supabaseAdmin
+        .from("user_roles")
+        .upsert({ user_id: context.userId, role: "admin" }, { onConflict: "user_id, role" });
+    }
+
     return { ok: true };
+
   });
 
 export const registerTechnician = createServerFn({ method: "POST" })
