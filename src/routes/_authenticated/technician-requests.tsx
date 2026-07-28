@@ -29,7 +29,10 @@ export const Route = createFileRoute("/_authenticated/technician-requests")({
 });
 
 function TechnicianRequestsPage() {
-  const { data: assignments } = useSuspenseQuery(assignmentsQueryOptions());
+  const { data } = useSuspenseQuery(assignmentsQueryOptions());
+  const isTechnician = data.isTechnician;
+  const assignments: any[] = data.assignments;
+
   const queryClient = useQueryClient();
   const doUpdate = useServerFn(updateAssignmentStatus);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
