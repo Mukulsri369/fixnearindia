@@ -189,15 +189,21 @@ export const requestAssignment = createServerFn({ method: "POST" })
 export const getTechnicianAssignments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: technician, error: techError } = await context.supabase
+    const { data: profile } = await context.supabase
+      .from("profiles")
+      .select("id")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+
+    if (!profile) return { isTechnician: false, assignments: [] };
+
+    const { data: technician } = await context.supabase
       .from("technicians")
       .select("id")
-      .eq("profile_id", context.userId)
-      .single();
+      .eq("profile_id", profile.id)
+      .maybeSingle();
 
-    if (techError || !technician) {
-      throw new Error("You are not registered as a technician");
-    }
+    if (!technician) return { isTechnician: false, assignments: [] };
 
     const { data, error } = await context.supabase
       .from("request_assignments")
@@ -212,8 +218,9 @@ export const getTechnicianAssignments = createServerFn({ method: "GET" })
       throw new Error(`Failed to load assignments: ${error.message}`);
     }
 
-    return data ?? [];
+    return { isTechnician: true, assignments: data ?? [] };
   });
+
 
 export const updateAssignmentStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
