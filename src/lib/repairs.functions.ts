@@ -226,15 +226,24 @@ export const updateAssignmentStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ assignmentId: z.string().uuid(), status: z.enum(["accepted", "rejected", "completed"]) }).parse(input))
   .handler(async ({ data, context }) => {
-    const { data: technician, error: techError } = await context.supabase
-      .from("technicians")
+    const { data: profile } = await context.supabase
+      .from("profiles")
       .select("id")
-      .eq("profile_id", context.userId)
-      .single();
+      .eq("user_id", context.userId)
+      .maybeSingle();
 
-    if (techError || !technician) {
+    const { data: technician } = profile
+      ? await context.supabase
+          .from("technicians")
+          .select("id")
+          .eq("profile_id", profile.id)
+          .maybeSingle()
+      : { data: null };
+
+    if (!technician) {
       throw new Error("You are not registered as a technician");
     }
+
 
     const { data: assignment, error: assignmentError } = await context.supabase
       .from("request_assignments")
