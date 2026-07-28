@@ -34,15 +34,22 @@ export const getCurrentUserRole = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", context.userId)
-      .maybeSingle();
+      .eq("user_id", context.userId);
 
     if (error) {
       throw new Error(`Failed to load role: ${error.message}`);
     }
 
-    return { role: data?.role ?? null };
+    const roles = (data ?? []).map((r) => r.role as string);
+    const role = roles.includes("admin")
+      ? "admin"
+      : roles.includes("technician")
+        ? "technician"
+        : (roles[0] ?? null);
+
+    return { role, roles, isAdmin: roles.includes("admin"), isTechnician: roles.includes("technician") };
   });
+
 
 export const createProfileIfMissing = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
