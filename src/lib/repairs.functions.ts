@@ -208,8 +208,8 @@ export const getTechnicianAssignments = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("request_assignments")
       .select(
-        `id, status, accepted_at, completed_at, created_at,
-        repair_requests (id, brand, model, issue_description, priority, city, pincode, address, preferred_visit_time, status, categories (name), profiles (full_name, phone))`
+        `id, status, accepted_at, completed_at, created_at, repair_notes, parts_replaced, amount,
+        repair_requests (id, customer_id, brand, model, issue_description, priority, city, pincode, address, preferred_visit_time, status, categories (name))`
       )
       .eq("technician_id", technician.id)
       .order("created_at", { ascending: false });
@@ -218,7 +218,33 @@ export const getTechnicianAssignments = createServerFn({ method: "GET" })
       throw new Error(`Failed to load assignments: ${error.message}`);
     }
 
-    return { isTechnician: true, assignments: data ?? [] };
+    const rows = data ?? [];
+    const customerIds = [
+      ...new Set(rows.map((r) => r.repair_requests?.customer_id).filter(Boolean) as string[]),
+    ];
+
+    let customerMap: Record<string, { full_name: string | null; phone: string | null }> = {};
+    if (customerIds.length > 0) {
+      const { data: customers } = await context.supabase
+        .from("profiles")
+        .select("user_id, full_name, phone")
+        .in("user_id", customerIds);
+      customerMap = Object.fromEntries(
+        (customers ?? []).map((c) => [c.user_id, { full_name: c.full_name, phone: c.phone }])
+      );
+    }
+
+    const assignments = rows.map((r) => ({
+      ...r,
+      repair_requests: r.repair_requests
+        ? {
+            ...r.repair_requests,
+            profiles: customerMap[r.repair_requests.customer_id] ?? null,
+          }
+        : null,
+    }));
+
+    return { isTechnician: true, assignments };
   });
 
 
