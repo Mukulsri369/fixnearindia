@@ -43,6 +43,8 @@ function DashboardPage() {
   const role = roleData?.role ?? "customer";
   const isTechnician = (roleData as any)?.isTechnician ?? role === "technician";
   const isAdmin = (roleData as any)?.isAdmin ?? false;
+  const hasTechnicianApplication = (roleData as any)?.hasTechnicianApplication ?? isTechnician;
+  const isTechnicianApproved = (roleData as any)?.isTechnicianApproved ?? isTechnician;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const doSignOut = useServerFn(signOut);
@@ -135,22 +137,27 @@ function DashboardPage() {
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {!isTechnician ? (
+                  {!isTechnicianApproved ? (
                     <Link to="/new-request">
                       <Button className="w-full">Book a Repair</Button>
                     </Link>
                   ) : null}
-                  {!isTechnician ? (
+                  {!isTechnicianApproved ? (
                     <Link to="/requests">
                       <Button variant="outline" className="w-full">My Requests</Button>
                     </Link>
                   ) : null}
-                  {!isTechnician ? (
+                  {!isTechnicianApproved && !hasTechnicianApplication ? (
                     <Link to="/register-technician">
                       <Button variant="outline" className="w-full">Become a Technician</Button>
                     </Link>
                   ) : null}
-                  {isTechnician ? (
+                  {!isTechnicianApproved && hasTechnicianApplication ? (
+                    <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
+                      Technician application pending approval.
+                    </p>
+                  ) : null}
+                  {isTechnicianApproved ? (
                     <>
                       <Link to="/available-jobs">
                         <Button className="w-full">Find Nearby Jobs</Button>

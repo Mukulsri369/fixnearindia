@@ -483,6 +483,8 @@ export type Database = {
           avg_rating: number | null
           business_name: string | null
           city: string | null
+          contact_email: string | null
+          contact_phone: string | null
           created_at: string
           district: string | null
           experience_years: number | null
@@ -508,6 +510,8 @@ export type Database = {
           avg_rating?: number | null
           business_name?: string | null
           city?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string
           district?: string | null
           experience_years?: number | null
@@ -533,6 +537,8 @@ export type Database = {
           avg_rating?: number | null
           business_name?: string | null
           city?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string
           district?: string | null
           experience_years?: number | null
@@ -556,7 +562,7 @@ export type Database = {
           {
             foreignKeyName: "technicians_profile_id_fkey"
             columns: ["profile_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },

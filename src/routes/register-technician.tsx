@@ -9,12 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { queryOptions } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { supabase } from "@/integrations/supabase/client";
 import { getCategories } from "@/lib/categories.functions";
-import { registerTechnician } from "@/lib/auth.functions";
+import { getTechnicianRegistrationStatus, registerTechnician } from "@/lib/auth.functions";
 import { useAuth } from "@/hooks/use-auth";
 
 const categoriesQueryOptions = () =>
@@ -39,6 +38,12 @@ function RegisterTechnicianPage() {
   const { isAuthenticated } = useAuth();
   const { data: categories } = useSuspenseQuery(categoriesQueryOptions());
   const doRegister = useServerFn(registerTechnician);
+  const getStatus = useServerFn(getTechnicianRegistrationStatus);
+  const { data: registrationStatus } = useQuery({
+    queryKey: ["technician-registration-status"],
+    queryFn: () => getStatus(),
+    enabled: isAuthenticated,
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [form, setForm] = useState({
     fullName: "",
@@ -106,6 +111,30 @@ function RegisterTechnicianPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
+          {registrationStatus?.hasTechnicianApplication ? (
+            <Card>
+              <CardHeader className="text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                  <Wrench className="h-6 w-6" />
+                </div>
+                <CardTitle className="mt-4 text-2xl">
+                  {registrationStatus.isApproved ? "Technician account approved" : "Registration submitted"}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {registrationStatus.isApproved
+                    ? "You can now accept repair jobs near your service area."
+                    : "Your technician application is waiting for admin approval."}
+                </p>
+              </CardHeader>
+              <CardContent>
+                <Link to={registrationStatus.isApproved ? "/available-jobs" : "/dashboard"}>
+                  <Button className="w-full">
+                    {registrationStatus.isApproved ? "View nearby repair jobs" : "Back to dashboard"}
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ) : (
           <Card>
             <CardHeader className="text-center">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
@@ -230,6 +259,7 @@ function RegisterTechnicianPage() {
               ) : null}
             </CardContent>
           </Card>
+          )}
         </motion.div>
       </div>
     </div>
