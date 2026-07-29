@@ -84,16 +84,16 @@ export const getCurrentUserRole = createServerFn({ method: "GET" })
       .eq("user_id", context.userId)
       .maybeSingle();
 
-    const { data: approvedTechnician } = profile
+    const { data: technicianApplication } = profile
       ? await context.supabase
           .from("technicians")
-          .select("id")
+          .select("id, is_approved")
           .eq("profile_id", profile.id)
-          .eq("is_approved", true)
           .maybeSingle()
       : { data: null };
 
-    const effectiveRoles = approvedTechnician && !roles.includes("technician") ? [...roles, "technician"] : roles;
+    const isApprovedTechnician = !!technicianApplication?.is_approved;
+    const effectiveRoles = isApprovedTechnician && !roles.includes("technician") ? [...roles, "technician"] : roles;
     const role = roles.includes("admin")
       ? "admin"
       : effectiveRoles.includes("technician")
@@ -105,7 +105,8 @@ export const getCurrentUserRole = createServerFn({ method: "GET" })
       roles: effectiveRoles,
       isAdmin: roles.includes("admin"),
       isTechnician: effectiveRoles.includes("technician"),
-      hasTechnicianApplication: !!approvedTechnician || roles.includes("technician"),
+      hasTechnicianApplication: !!technicianApplication,
+      isTechnicianApproved: isApprovedTechnician,
     };
   });
 
@@ -184,8 +185,7 @@ export const registerTechnician = createServerFn({ method: "POST" })
       }
     }
 
-    const { data: existingTechnicians } = await supabaseAdmin
-      .from("technicians")
+    const { data: existingTechnicians } = await (supabaseAdmin.from("technicians") as any)
       .select("id, profile_id, contact_email, contact_phone, profiles!inner(phone)");
 
     const duplicate = ((existingTechnicians ?? []) as any[]).find((technician) => {

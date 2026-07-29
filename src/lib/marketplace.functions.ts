@@ -454,11 +454,48 @@ export const setTechnicianApproval = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
 
+    const { data: technician, error: technicianLoadError } = await context.supabase
+      .from("technicians")
+      .select("id, profile_id")
+      .eq("id", data.technicianId)
+      .maybeSingle();
+
+    if (technicianLoadError || !technician) {
+      throw new Error(`Failed to load technician: ${technicianLoadError?.message ?? "not found"}`);
+    }
+
+    const { data: profile, error: profileError } = await context.supabase
+      .from("profiles")
+      .select("user_id")
+      .eq("id", technician.profile_id)
+      .maybeSingle();
+
+    if (profileError || !profile) {
+      throw new Error(`Failed to load technician profile: ${profileError?.message ?? "not found"}`);
+    }
+
     const { error } = await context.supabase
       .from("technicians")
       .update({ is_approved: data.approve })
       .eq("id", data.technicianId);
 
     if (error) throw new Error(`Failed to update technician: ${error.message}`);
+
+    if (data.approve) {
+      const { error: roleError } = await context.supabase
+        .from("user_roles")
+        .upsert({ user_id: profile.user_id, role: "technician" }, { onConflict: "user_id, role" });
+
+      if (roleError) throw new Error(`Failed to update technician role: ${roleError.message}`);
+    } else {
+      const { error: roleError } = await context.supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", profile.user_id)
+        .eq("role", "technician");
+
+      if (roleError) throw new Error(`Failed to update technician role: ${roleError.message}`);
+    }
+
     return { ok: true };
   });
