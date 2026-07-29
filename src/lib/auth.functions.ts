@@ -30,6 +30,40 @@ export const getCurrentUserProfile = createServerFn({ method: "GET" })
     return data;
   });
 
+export const getTechnicianRegistrationStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: profile, error: profileError } = await context.supabase
+      .from("profiles")
+      .select("id")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+
+    if (profileError) {
+      throw new Error(`Failed to load technician status: ${profileError.message}`);
+    }
+
+    if (!profile) {
+      return { hasTechnicianApplication: false, isApproved: false, technicianId: null };
+    }
+
+    const { data: technician, error: technicianError } = await context.supabase
+      .from("technicians")
+      .select("id, is_approved")
+      .eq("profile_id", profile.id)
+      .maybeSingle();
+
+    if (technicianError) {
+      throw new Error(`Failed to load technician status: ${technicianError.message}`);
+    }
+
+    return {
+      hasTechnicianApplication: !!technician,
+      isApproved: !!technician?.is_approved,
+      technicianId: technician?.id ?? null,
+    };
+  });
+
 export const getCurrentUserRole = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -43,13 +77,36 @@ export const getCurrentUserRole = createServerFn({ method: "GET" })
     }
 
     const roles = (data ?? []).map((r) => r.role as string);
+
+    const { data: profile } = await context.supabase
+      .from("profiles")
+      .select("id")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+
+    const { data: approvedTechnician } = profile
+      ? await context.supabase
+          .from("technicians")
+          .select("id")
+          .eq("profile_id", profile.id)
+          .eq("is_approved", true)
+          .maybeSingle()
+      : { data: null };
+
+    const effectiveRoles = approvedTechnician && !roles.includes("technician") ? [...roles, "technician"] : roles;
     const role = roles.includes("admin")
       ? "admin"
-      : roles.includes("technician")
+      : effectiveRoles.includes("technician")
         ? "technician"
-        : (roles[0] ?? null);
+        : (effectiveRoles[0] ?? null);
 
-    return { role, roles, isAdmin: roles.includes("admin"), isTechnician: roles.includes("technician") };
+    return {
+      role,
+      roles: effectiveRoles,
+      isAdmin: roles.includes("admin"),
+      isTechnician: effectiveRoles.includes("technician"),
+      hasTechnicianApplication: !!approvedTechnician || roles.includes("technician"),
+    };
   });
 
 
@@ -96,6 +153,10 @@ export const registerTechnician = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => technicianSchema.parse(input))
   .handler(async ({ data, context }) => {
+    const email = String((context.claims as any)?.email ?? "").trim().toLowerCase();
+    const normalizedPhone = data.phone.replace(/\D/g, "");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     const { data: profile, error: profileError } = await context.supabase
       .from("profiles")
       .select("id")
@@ -107,6 +168,37 @@ export const registerTechnician = createServerFn({ method: "POST" })
     }
 
     let profileId = profile?.id;
+    if (profileId) {
+      const { data: existingTechnician } = await supabaseAdmin
+        .from("technicians")
+        .select("id, is_approved")
+        .eq("profile_id", profileId)
+        .maybeSingle();
+
+      if (existingTechnician) {
+        throw new Error(
+          existingTechnician.is_approved
+            ? "Your technician account is already approved. Go to Nearby repair jobs."
+            : "Your technician registration is already submitted and waiting for approval.",
+        );
+      }
+    }
+
+    const { data: existingTechnicians } = await supabaseAdmin
+      .from("technicians")
+      .select("id, profile_id, contact_email, contact_phone, profiles!inner(phone)");
+
+    const duplicate = ((existingTechnicians ?? []) as any[]).find((technician) => {
+      const existingEmail = String(technician.contact_email ?? "").trim().toLowerCase();
+      const profilePhone = Array.isArray(technician.profiles) ? technician.profiles[0]?.phone : technician.profiles?.phone;
+      const existingPhone = String(technician.contact_phone ?? profilePhone ?? "").replace(/\D/g, "");
+      return (!!email && existingEmail === email) || (!!normalizedPhone && existingPhone === normalizedPhone);
+    });
+
+    if (duplicate) {
+      throw new Error("This email address or phone number is already registered as a technician.");
+    }
+
     if (!profileId) {
       const { data: newProfile, error: createError } = await context.supabase
         .from("profiles")
@@ -127,14 +219,6 @@ export const registerTechnician = createServerFn({ method: "POST" })
       }
     }
 
-    const { error: roleUpsertError } = await context.supabase
-      .from("user_roles")
-      .upsert({ user_id: context.userId, role: "technician" }, { onConflict: "user_id, role" });
-
-    if (roleUpsertError) {
-      console.error("Role upsert error:", roleUpsertError);
-    }
-
     const { data: technician, error: technicianError } = await context.supabase
       .from("technicians")
       .insert({
@@ -143,9 +227,11 @@ export const registerTechnician = createServerFn({ method: "POST" })
         pincode: data.pincode,
         city: data.city,
         service_radius_km: data.serviceRadiusKm,
+        contact_email: email || null,
+        contact_phone: data.phone,
         is_approved: false,
         is_available: true,
-      })
+      } as any)
       .select("id")
       .single();
 
