@@ -42,10 +42,11 @@ function AuthPage() {
 
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: form.email,
           password: form.password,
           options: {
+            emailRedirectTo: window.location.origin,
             data: {
               full_name: form.fullName,
               phone: form.phone,
@@ -53,19 +54,52 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Account created! Please check your email to confirm.");
+
+        if (data.session) {
+          await ensureProfile({ data: undefined });
+          toast.success("Account created — you're signed in");
+          navigate({ to: "/dashboard" });
+        } else {
+          toast.success("Account created! Please check your email to confirm.");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email: form.email,
           password: form.password,
         });
-        if (error) throw error;
+        if (error) {
+          if (error.message.toLowerCase().includes("invalid login credentials")) {
+            throw new Error(
+              "Email or password is incorrect. If you first signed up with Google, use \"Forgot password?\" to set a password.",
+            );
+          }
+          throw error;
+        }
         await ensureProfile({ data: undefined });
         toast.success("Signed in successfully");
         navigate({ to: "/dashboard" });
       }
     } catch (err: any) {
       toast.error(err.message || "Authentication failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!form.email) {
+      toast.error("Enter your email address first");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(form.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Password reset link sent. Check your inbox.");
+    } catch (err: any) {
+      toast.error(err.message || "Could not send reset email");
     } finally {
       setIsLoading(false);
     }
