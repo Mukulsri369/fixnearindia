@@ -90,6 +90,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@FixNearIndia" },
+      { name: "twitter:title", content: "FixNear India — Trusted Electronics Repair Technicians" },
+      { name: "twitter:description", content: "Connect with verified electronics repair technicians near you in India. Laptops, ACs, TVs, washing machines, and more." },
+      { property: "og:image", content: "https://id-preview--5e5a2763-8d97-4eba-bf3e-b0c5d3930af4.lovable.app/images/hero-technician.jpg" },
+      { name: "twitter:image", content: "https://id-preview--5e5a2763-8d97-4eba-bf3e-b0c5d3930af4.lovable.app/images/hero-technician.jpg" },
     ],
     links: [
       {
