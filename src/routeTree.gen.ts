@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterTechnicianRouteImport } from './routes/register-technician'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -29,6 +30,11 @@ import { Route as AuthenticatedRequestIdRouteImport } from './routes/_authentica
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterTechnicianRoute = RegisterTechnicianRouteImport.update({
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/privacy': typeof PrivacyRoute
   '/register-technician': typeof RegisterTechnicianRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/available-jobs': typeof AuthenticatedAvailableJobsRoute
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/privacy': typeof PrivacyRoute
   '/register-technician': typeof RegisterTechnicianRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/available-jobs': typeof AuthenticatedAvailableJobsRoute
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/privacy': typeof PrivacyRoute
   '/register-technician': typeof RegisterTechnicianRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/available-jobs': typeof AuthenticatedAvailableJobsRoute
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/privacy'
     | '/register-technician'
+    | '/reset-password'
     | '/terms'
     | '/admin'
     | '/available-jobs'
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/privacy'
     | '/register-technician'
+    | '/reset-password'
     | '/terms'
     | '/admin'
     | '/available-jobs'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/privacy'
     | '/register-technician'
+    | '/reset-password'
     | '/terms'
     | '/_authenticated/admin'
     | '/_authenticated/available-jobs'
@@ -224,6 +236,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   PrivacyRoute: typeof PrivacyRoute
   RegisterTechnicianRoute: typeof RegisterTechnicianRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   TermsRoute: typeof TermsRoute
 }
 
@@ -234,6 +247,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register-technician': {
@@ -377,6 +397,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   PrivacyRoute: PrivacyRoute,
   RegisterTechnicianRoute: RegisterTechnicianRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
