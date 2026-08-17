@@ -44,6 +44,20 @@ export const createRepairRequest = createServerFn({ method: "POST" })
       throw new Error(`Failed to create repair request: ${error?.message ?? "unknown"}`);
     }
 
+    try {
+      const { notifyMatchingTechnicians } = await import("./notify.server");
+      await notifyMatchingTechnicians({
+        requestId: request.id,
+        categoryId: data.categoryId,
+        city: data.city,
+        pincode: data.pincode,
+        brand: data.brand ?? null,
+        model: data.model ?? null,
+      });
+    } catch (notifyError) {
+      console.error("Failed to notify technicians", notifyError);
+    }
+
     return { requestId: request.id };
   });
 
