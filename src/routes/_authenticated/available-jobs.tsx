@@ -67,6 +67,46 @@ function AvailableJobsPage() {
           </p>
         </div>
 
+        {data.isTechnician && data.isApproved && (
+          <div className="mb-6 flex flex-wrap items-end gap-3 rounded-xl border bg-card p-4">
+            <div className="min-w-40 flex-1">
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">State</label>
+              <Select
+                value={state ?? ALL}
+                onValueChange={(v) => {
+                  setState(v === ALL ? null : v);
+                  setCity(null);
+                }}
+              >
+                <SelectTrigger><SelectValue placeholder="All states" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>All states</SelectItem>
+                  {(data.states ?? []).map((s: string) => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="min-w-40 flex-1">
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">City</label>
+              <Select value={city ?? ALL} onValueChange={(v) => setCity(v === ALL ? null : v)}>
+                <SelectTrigger><SelectValue placeholder="All cities" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>All cities</SelectItem>
+                  {(data.cities ?? []).map((c: string) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {(state || city) && (
+              <Button variant="ghost" onClick={() => { setState(null); setCity(null); }}>
+                Clear
+              </Button>
+            )}
+          </div>
+        )}
+
         {!data.isTechnician ? (
           <EmptyState
             title="You're not registered as a technician"
@@ -80,8 +120,8 @@ function AvailableJobsPage() {
           />
         ) : data.requests.length === 0 ? (
           <EmptyState
-            title="No open jobs right now"
-            description="New requests in your categories will show up here."
+            title="No open jobs in this location"
+            description="Try a different state or city — new requests in your categories will show up here."
           />
         ) : (
           <div className="space-y-4">
