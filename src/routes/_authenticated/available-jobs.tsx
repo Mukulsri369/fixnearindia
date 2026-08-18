@@ -11,10 +11,12 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { expressInterest, getAvailableRequests } from "@/lib/marketplace.functions";
 
-const availableQueryOptions = () =>
+const ALL = "__all__";
+
+const availableQueryOptions = (state?: string | null, city?: string | null) =>
   queryOptions({
-    queryKey: ["available-requests"],
-    queryFn: () => getAvailableRequests(),
+    queryKey: ["available-requests", state ?? null, city ?? null],
+    queryFn: () => getAvailableRequests({ data: { state: state ?? null, city: city ?? null } }),
   });
 
 export const Route = createFileRoute("/_authenticated/available-jobs")({
@@ -26,12 +28,14 @@ export const Route = createFileRoute("/_authenticated/available-jobs")({
       { property: "og:description", content: "Browse open repair requests near you in your service categories." },
     ],
   }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(availableQueryOptions()),
+  loader: ({ context }) => context.queryClient.ensureQueryData(availableQueryOptions(null, null)),
   component: AvailableJobsPage,
 });
 
 function AvailableJobsPage() {
-  const { data } = useSuspenseQuery(availableQueryOptions());
+  const [state, setState] = useState<string | null>(null);
+  const [city, setCity] = useState<string | null>(null);
+  const { data } = useSuspenseQuery(availableQueryOptions(state, city));
   const queryClient = useQueryClient();
   const doInterest = useServerFn(expressInterest);
   const [openId, setOpenId] = useState<string | null>(null);
