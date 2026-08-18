@@ -10,6 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { signOut } from "@/lib/auth.functions";
+import { NotificationBell } from "./NotificationBell";
 
 const navLinks = [
   { label: "Home", to: "/" },
@@ -63,6 +64,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {isAuthenticated ? <NotificationBell /> : null}
           <ThemeToggle />
           <div className="hidden items-center gap-2 md:flex">
             {isLoading ? null : isAuthenticated ? (
