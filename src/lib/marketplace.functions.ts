@@ -41,26 +41,43 @@ export const getTechnicianContext = createServerFn({ method: "GET" })
 
 export const getAvailableRequests = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input) =>
+    z
+      .object({
+        state: z.string().max(100).nullable().optional(),
+        city: z.string().max(100).nullable().optional(),
+      })
+      .parse(input ?? {})
+  )
+  .handler(async ({ data, context }) => {
+    const empty = {
+      isTechnician: false,
+      isApproved: false,
+      requests: [] as any[],
+      states: [] as string[],
+      cities: [] as string[],
+    };
+
     const { data: profile } = await context.supabase
       .from("profiles")
       .select("id")
       .eq("user_id", context.userId)
       .maybeSingle();
-    if (!profile) return { isTechnician: false, isApproved: false, requests: [] as any[] };
+    if (!profile) return empty;
 
     const { data: technician } = await context.supabase
       .from("technicians")
-      .select("id, is_approved, city, pincode, technician_categories (category_id)")
+      .select("id, is_approved, city, state, pincode, technician_categories (category_id)")
       .eq("profile_id", profile.id)
       .maybeSingle();
-    if (!technician) return { isTechnician: false, isApproved: false, requests: [] as any[] };
-    if (!technician.is_approved) return { isTechnician: true, isApproved: false, requests: [] as any[] };
+    if (!technician) return empty;
+    if (!technician.is_approved) return { ...empty, isTechnician: true };
 
     const categoryIds = (technician.technician_categories ?? []).map((c: { category_id: string }) => c.category_id);
-    if (categoryIds.length === 0) return { isTechnician: true, isApproved: true, requests: [] as any[] };
+    if (categoryIds.length === 0) return { ...empty, isTechnician: true, isApproved: true };
 
-    const { data: requests, error } = await context.supabase
+    // All open requests limited to the technician's repair categories
+    const { data: allRequests, error } = await context.supabase
       .from("repair_requests")
       .select(
         `id, brand, model, issue_description, priority, city, state, pincode, address,
@@ -69,11 +86,30 @@ export const getAvailableRequests = createServerFn({ method: "GET" })
       .eq("status", "open")
       .in("category_id", categoryIds)
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(200);
 
     if (error) throw new Error(`Failed to load nearby requests: ${error.message}`);
 
-    const ids = (requests ?? []).map((r) => r.id);
+    const rows = allRequests ?? [];
+
+    const states = Array.from(new Set(rows.map((r) => r.state).filter(Boolean) as string[])).sort();
+    const selectedState = data.state?.trim() || null;
+    const selectedCity = data.city?.trim() || null;
+
+    const cities = Array.from(
+      new Set(
+        rows
+          .filter((r) => !selectedState || r.state === selectedState)
+          .map((r) => r.city)
+          .filter(Boolean) as string[]
+      )
+    ).sort();
+
+    let filtered = rows;
+    if (selectedState) filtered = filtered.filter((r) => r.state === selectedState);
+    if (selectedCity) filtered = filtered.filter((r) => (r.city ?? "").toLowerCase() === selectedCity.toLowerCase());
+
+    const ids = filtered.map((r) => r.id);
     let interestedIds: string[] = [];
     if (ids.length) {
       const { data: mine } = await context.supabase
@@ -84,9 +120,9 @@ export const getAvailableRequests = createServerFn({ method: "GET" })
       interestedIds = (mine ?? []).map((m) => m.repair_request_id);
     }
 
-    // Prefer requests near the technician (same city or pincode prefix)
+    // Prefer requests near the technician's own base (same city or pincode area)
     const prefix = (technician.pincode ?? "").slice(0, 3);
-    const scored = (requests ?? []).map((r) => ({
+    const scored = filtered.map((r) => ({
       ...r,
       alreadyInterested: interestedIds.includes(r.id),
       isNearby:
@@ -95,7 +131,7 @@ export const getAvailableRequests = createServerFn({ method: "GET" })
     }));
     scored.sort((a, b) => Number(b.isNearby) - Number(a.isNearby));
 
-    return { isTechnician: true, isApproved: true, requests: scored };
+    return { isTechnician: true, isApproved: true, requests: scored, states, cities };
   });
 
 export const expressInterest = createServerFn({ method: "POST" })
