@@ -4,6 +4,12 @@ import { z } from "zod";
 
 const PLATFORM_ADMIN_EMAIL = "mukul.srivastava.025@gmail.com";
 
+const documentSchema = z.object({
+  base64: z.string().min(10),
+  fileName: z.string().min(1).max(200),
+  contentType: z.string().min(3).max(100),
+});
+
 const technicianSchema = z.object({
   fullName: z.string().min(2).max(100),
   phone: z.string().min(10).max(15),
@@ -11,7 +17,11 @@ const technicianSchema = z.object({
   experienceYears: z.number().int().min(0).max(60),
   pincode: z.string().min(6).max(10),
   city: z.string().min(2).max(100),
-  serviceRadiusKm: z.number().int().min(1).max(100),
+  state: z.string().min(2).max(100),
+  gstNumber: z.string().max(20).optional().nullable(),
+  photo: documentSchema,
+  aadhaar: documentSchema,
+  pan: documentSchema,
 });
 
 export const getCurrentUserProfile = createServerFn({ method: "GET" })
@@ -219,6 +229,26 @@ export const registerTechnician = createServerFn({ method: "POST" })
       }
     }
 
+    const uploadDoc = async (
+      doc: { base64: string; fileName: string; contentType: string },
+      kind: string,
+    ) => {
+      const raw = doc.base64.includes(",") ? doc.base64.split(",")[1] : doc.base64;
+      if (!raw) throw new Error(`Invalid ${kind} file`);
+      const buffer = Buffer.from(raw, "base64");
+      const safeName = doc.fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `${context.userId}/${kind}_${Date.now()}_${safeName}`;
+      const { error } = await supabaseAdmin.storage
+        .from("technician-docs")
+        .upload(path, buffer, { contentType: doc.contentType, upsert: true });
+      if (error) throw new Error(`Failed to upload ${kind}: ${error.message}`);
+      return path;
+    };
+
+    const photoPath = await uploadDoc(data.photo, "photo");
+    const aadhaarPath = await uploadDoc(data.aadhaar, "aadhaar");
+    const panPath = await uploadDoc(data.pan, "pan");
+
     const { data: technician, error: technicianError } = await context.supabase
       .from("technicians")
       .insert({
@@ -226,7 +256,11 @@ export const registerTechnician = createServerFn({ method: "POST" })
         experience_years: data.experienceYears,
         pincode: data.pincode,
         city: data.city,
-        service_radius_km: data.serviceRadiusKm,
+        state: data.state,
+        gst_number: data.gstNumber?.trim() ? data.gstNumber.trim().toUpperCase() : null,
+        profile_photo_url: photoPath,
+        aadhaar_url: aadhaarPath,
+        pan_url: panPath,
         contact_email: email || null,
         contact_phone: data.phone,
         is_approved: false,
