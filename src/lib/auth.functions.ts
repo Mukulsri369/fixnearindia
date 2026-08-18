@@ -4,6 +4,12 @@ import { z } from "zod";
 
 const PLATFORM_ADMIN_EMAIL = "mukul.srivastava.025@gmail.com";
 
+const documentSchema = z.object({
+  base64: z.string().min(10),
+  fileName: z.string().min(1).max(200),
+  contentType: z.string().min(3).max(100),
+});
+
 const technicianSchema = z.object({
   fullName: z.string().min(2).max(100),
   phone: z.string().min(10).max(15),
@@ -11,7 +17,11 @@ const technicianSchema = z.object({
   experienceYears: z.number().int().min(0).max(60),
   pincode: z.string().min(6).max(10),
   city: z.string().min(2).max(100),
-  serviceRadiusKm: z.number().int().min(1).max(100),
+  state: z.string().min(2).max(100),
+  gstNumber: z.string().max(20).optional().nullable(),
+  photo: documentSchema,
+  aadhaar: documentSchema,
+  pan: documentSchema,
 });
 
 export const getCurrentUserProfile = createServerFn({ method: "GET" })
