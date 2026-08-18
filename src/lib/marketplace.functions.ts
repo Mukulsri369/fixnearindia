@@ -248,11 +248,13 @@ export const selectTechnician = createServerFn({ method: "POST" })
     if (request.customer_id !== context.userId) throw new Error("You can only assign your own requests");
     if (request.status !== "open") throw new Error("This request already has an assigned technician");
 
-    const { error: acceptError } = await context.supabase
+    const { data: accepted, error: acceptError } = await context.supabase
       .from("request_assignments")
       .update({ status: "accepted", accepted_at: new Date().toISOString() })
       .eq("id", data.assignmentId)
-      .eq("repair_request_id", data.requestId);
+      .eq("repair_request_id", data.requestId)
+      .select("technician_id")
+      .maybeSingle();
     if (acceptError) throw new Error(`Failed to assign technician: ${acceptError.message}`);
 
     await context.supabase
@@ -266,6 +268,15 @@ export const selectTechnician = createServerFn({ method: "POST" })
       .update({ status: "assigned" })
       .eq("id", data.requestId);
     if (statusError) throw new Error(`Failed to update request: ${statusError.message}`);
+
+    if (accepted?.technician_id) {
+      try {
+        const { notifyTechnicianSelected } = await import("./notify.server");
+        await notifyTechnicianSelected(accepted.technician_id, data.requestId);
+      } catch (notifyError) {
+        console.error("Failed to notify technician", notifyError);
+      }
+    }
 
     return { ok: true };
   });
