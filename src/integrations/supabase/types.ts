@@ -488,6 +488,7 @@ export type Database = {
           created_at: string
           district: string | null
           experience_years: number | null
+          gst_number: string | null
           id: string
           is_approved: boolean | null
           is_available: boolean | null
@@ -515,6 +516,7 @@ export type Database = {
           created_at?: string
           district?: string | null
           experience_years?: number | null
+          gst_number?: string | null
           id?: string
           is_approved?: boolean | null
           is_available?: boolean | null
@@ -542,6 +544,7 @@ export type Database = {
           created_at?: string
           district?: string | null
           experience_years?: number | null
+          gst_number?: string | null
           id?: string
           is_approved?: boolean | null
           is_available?: boolean | null
