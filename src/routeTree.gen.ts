@@ -22,6 +22,7 @@ import { Route as AuthenticatedTechnicianRequestsRouteImport } from './routes/_a
 import { Route as AuthenticatedRequestsRouteImport } from './routes/_authenticated/requests'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedNewRequestRouteImport } from './routes/_authenticated/new-request'
+import { Route as AuthenticatedNearbyTechniciansRouteImport } from './routes/_authenticated/nearby-technicians'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAvailableJobsRouteImport } from './routes/_authenticated/available-jobs'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -92,6 +93,12 @@ const AuthenticatedNewRequestRoute = AuthenticatedNewRequestRouteImport.update({
   path: '/new-request',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedNearbyTechniciansRoute =
+  AuthenticatedNearbyTechniciansRouteImport.update({
+    id: '/nearby-technicians',
+    path: '/nearby-technicians',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -126,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/available-jobs': typeof AuthenticatedAvailableJobsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/nearby-technicians': typeof AuthenticatedNearbyTechniciansRoute
   '/new-request': typeof AuthenticatedNewRequestRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/requests': typeof AuthenticatedRequestsRoute
@@ -144,6 +152,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/available-jobs': typeof AuthenticatedAvailableJobsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/nearby-technicians': typeof AuthenticatedNearbyTechniciansRoute
   '/new-request': typeof AuthenticatedNewRequestRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/requests': typeof AuthenticatedRequestsRoute
@@ -164,6 +173,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/available-jobs': typeof AuthenticatedAvailableJobsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/nearby-technicians': typeof AuthenticatedNearbyTechniciansRoute
   '/_authenticated/new-request': typeof AuthenticatedNewRequestRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/requests': typeof AuthenticatedRequestsRoute
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/available-jobs'
     | '/dashboard'
+    | '/nearby-technicians'
     | '/new-request'
     | '/profile'
     | '/requests'
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/available-jobs'
     | '/dashboard'
+    | '/nearby-technicians'
     | '/new-request'
     | '/profile'
     | '/requests'
@@ -221,6 +233,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/available-jobs'
     | '/_authenticated/dashboard'
+    | '/_authenticated/nearby-technicians'
     | '/_authenticated/new-request'
     | '/_authenticated/profile'
     | '/_authenticated/requests'
@@ -333,6 +346,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNewRequestRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/nearby-technicians': {
+      id: '/_authenticated/nearby-technicians'
+      path: '/nearby-technicians'
+      fullPath: '/nearby-technicians'
+      preLoaderRoute: typeof AuthenticatedNearbyTechniciansRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -368,6 +388,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAvailableJobsRoute: typeof AuthenticatedAvailableJobsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedNearbyTechniciansRoute: typeof AuthenticatedNearbyTechniciansRoute
   AuthenticatedNewRequestRoute: typeof AuthenticatedNewRequestRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedRequestsRoute: typeof AuthenticatedRequestsRoute
@@ -379,6 +400,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAvailableJobsRoute: AuthenticatedAvailableJobsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedNearbyTechniciansRoute: AuthenticatedNearbyTechniciansRoute,
   AuthenticatedNewRequestRoute: AuthenticatedNewRequestRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedRequestsRoute: AuthenticatedRequestsRoute,
