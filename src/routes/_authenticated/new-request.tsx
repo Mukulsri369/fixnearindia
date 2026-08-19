@@ -4,7 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { queryOptions } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, Plus, Upload, X } from "lucide-react";
+import { ArrowLeft, Loader2, Plus, Upload, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +39,7 @@ function NewRequestPage() {
   const doCreate = useServerFn(createRepairRequest);
   const doUpload = useServerFn(uploadRepairImage);
   const [isLoading, setIsLoading] = useState(false);
+  const [mode, setMode] = useState<"choose" | "create">("choose");
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [form, setForm] = useState({
     title: "",
@@ -113,6 +114,50 @@ function NewRequestPage() {
           <ArrowLeft className="h-4 w-4" /> Back to dashboard
         </Link>
 
+        {mode === "choose" ? (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="grid gap-4 sm:grid-cols-2"
+          >
+            <Card className="flex flex-col">
+              <CardHeader>
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                  <Plus className="h-6 w-6" />
+                </div>
+                <CardTitle className="mt-4 text-xl">Create repair request</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Describe the problem and let matching technicians near you send their offers.
+                </p>
+              </CardHeader>
+              <CardContent className="mt-auto">
+                <Button className="w-full" onClick={() => setMode("create")}>
+                  Create repair request
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="flex flex-col">
+              <CardHeader>
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">
+                  <Users className="h-6 w-6" />
+                </div>
+                <CardTitle className="mt-4 text-xl">See nearby technicians</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Browse verified technicians in your city for your repair category and contact them directly.
+                </p>
+              </CardHeader>
+              <CardContent className="mt-auto">
+                <Link to="/nearby-technicians">
+                  <Button variant="outline" className="w-full">
+                    See nearby technicians
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ) : (
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -303,6 +348,7 @@ function NewRequestPage() {
             </CardContent>
           </Card>
         </motion.div>
+        )}
       </div>
     </div>
   );
