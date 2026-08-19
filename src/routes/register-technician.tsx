@@ -50,10 +50,27 @@ function RegisterTechnicianPage() {
     phone: "",
     pincode: "",
     city: "",
+    state: "",
+    gstNumber: "",
     experienceYears: "",
-    serviceRadiusKm: "10",
     categoryIds: [] as string[],
   });
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [aadhaar, setAadhaar] = useState<File | null>(null);
+  const [pan, setPan] = useState<File | null>(null);
+
+  const fileToPayload = (file: File) =>
+    new Promise<{ base64: string; fileName: string; contentType: string }>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () =>
+        resolve({
+          base64: String(reader.result),
+          fileName: file.name,
+          contentType: file.type || "application/octet-stream",
+        });
+      reader.onerror = () => reject(new Error("Could not read file"));
+      reader.readAsDataURL(file);
+    });
 
   const toggleCategory = (id: string) => {
     setForm((prev) => ({
@@ -77,6 +94,11 @@ function RegisterTechnicianPage() {
       return;
     }
 
+    if (!photo || !aadhaar || !pan) {
+      toast.error("Upload your photo, Aadhaar and PAN");
+      return;
+    }
+
     setIsLoading(true);
     try {
       await doRegister({
@@ -85,9 +107,13 @@ function RegisterTechnicianPage() {
           phone: form.phone,
           pincode: form.pincode,
           city: form.city,
+          state: form.state,
+          gstNumber: form.gstNumber || null,
           experienceYears: parseInt(form.experienceYears, 10),
-          serviceRadiusKm: parseInt(form.serviceRadiusKm, 10),
           categoryIds: form.categoryIds,
+          photo: await fileToPayload(photo),
+          aadhaar: await fileToPayload(aadhaar),
+          pan: await fileToPayload(pan),
         },
       });
       toast.success("Technician registration submitted for approval");
@@ -211,17 +237,67 @@ function RegisterTechnicianPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="radius">Service Radius (km)</Label>
+                    <Label htmlFor="state">State</Label>
                     <Input
-                      id="radius"
-                      type="number"
-                      min={1}
-                      max={100}
-                      placeholder="10"
+                      id="state"
+                      placeholder="Karnataka"
                       required
-                      value={form.serviceRadiusKm}
-                      onChange={(e) => setForm({ ...form, serviceRadiusKm: e.target.value })}
+                      value={form.state}
+                      onChange={(e) => setForm({ ...form, state: e.target.value })}
                     />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="gst">GST Number (optional)</Label>
+                  <Input
+                    id="gst"
+                    placeholder="29ABCDE1234F1Z5"
+                    maxLength={20}
+                    value={form.gstNumber}
+                    onChange={(e) => setForm({ ...form, gstNumber: e.target.value.toUpperCase() })}
+                  />
+                </div>
+
+                <div className="space-y-4 rounded-xl border border-border p-4">
+                  <div>
+                    <p className="text-sm font-medium">Verification documents</p>
+                    <p className="text-xs text-muted-foreground">
+                      Your photo and ID documents are stored privately and only visible to you and our
+                      verification team.
+                    </p>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="photo">Technician photo</Label>
+                      <Input
+                        id="photo"
+                        type="file"
+                        accept="image/*"
+                        required
+                        onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="aadhaar">Aadhaar card</Label>
+                      <Input
+                        id="aadhaar"
+                        type="file"
+                        accept="image/*,application/pdf"
+                        required
+                        onChange={(e) => setAadhaar(e.target.files?.[0] ?? null)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="pan">PAN card</Label>
+                      <Input
+                        id="pan"
+                        type="file"
+                        accept="image/*,application/pdf"
+                        required
+                        onChange={(e) => setPan(e.target.files?.[0] ?? null)}
+                      />
+                    </div>
                   </div>
                 </div>
 
