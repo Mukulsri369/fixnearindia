@@ -546,3 +546,64 @@ export const setTechnicianApproval = createServerFn({ method: "POST" })
 
     return { ok: true };
   });
+
+/* ------------------------------------------------------------------ */
+/* Customer: browse nearby technicians                                 */
+/* ------------------------------------------------------------------ */
+
+export const getNearbyTechnicians = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        city: z.string().max(100).optional(),
+        categoryId: z.string().uuid().optional(),
+      })
+      .parse(input ?? {}),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    let query = (supabaseAdmin.from("technicians") as any)
+      .select(
+        "id, business_name, city, state, pincode, experience_years, avg_rating, total_reviews, is_available, contact_email, contact_phone, profiles!inner(full_name, phone), technician_categories(category_id, categories(name))",
+      )
+      .eq("is_approved", true)
+      .order("avg_rating", { ascending: false });
+
+    if (data.city?.trim()) query = query.ilike("city", `%${data.city.trim()}%`);
+
+    const { data: rows, error } = await query;
+    if (error) throw new Error(`Failed to load technicians: ${error.message}`);
+
+    const technicians = ((rows ?? []) as any[])
+      .map((t) => {
+        const profile = Array.isArray(t.profiles) ? t.profiles[0] : t.profiles;
+        const links = (t.technician_categories ?? []) as any[];
+        return {
+          id: t.id as string,
+          name: (profile?.full_name as string) ?? (t.business_name as string) ?? "Technician",
+          businessName: (t.business_name as string) ?? null,
+          city: (t.city as string) ?? null,
+          state: (t.state as string) ?? null,
+          pincode: (t.pincode as string) ?? null,
+          experienceYears: (t.experience_years as number) ?? 0,
+          rating: Number(t.avg_rating ?? 0),
+          totalReviews: (t.total_reviews as number) ?? 0,
+          isAvailable: !!t.is_available,
+          phone: (t.contact_phone as string) ?? (profile?.phone as string) ?? null,
+          email: (t.contact_email as string) ?? null,
+          categoryIds: links.map((l) => l.category_id as string),
+          categoryNames: links
+            .map((l) => (Array.isArray(l.categories) ? l.categories[0]?.name : l.categories?.name))
+            .filter(Boolean) as string[],
+        };
+      })
+      .filter((t) => (data.categoryId ? t.categoryIds.includes(data.categoryId) : true));
+
+    const cities = Array.from(
+      new Set(((rows ?? []) as any[]).map((t) => t.city).filter(Boolean) as string[]),
+    ).sort();
+
+    return { technicians, cities };
+  });
