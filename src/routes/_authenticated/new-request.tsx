@@ -15,6 +15,7 @@ import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { getCategories } from "@/lib/categories.functions";
 import { createRepairRequest, uploadRepairImage } from "@/lib/repairs.functions";
+import { INDIA_STATES, citiesForState } from "@/lib/india-locations";
 
 const categoriesQueryOptions = () =>
   queryOptions({
