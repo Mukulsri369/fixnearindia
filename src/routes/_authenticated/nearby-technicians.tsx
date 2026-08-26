@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getCategories } from "@/lib/categories.functions";
 import { getNearbyTechnicians } from "@/lib/marketplace.functions";
+import { INDIA_STATES, citiesForState } from "@/lib/india-locations";
 
 const categoriesQueryOptions = () =>
   queryOptions({
