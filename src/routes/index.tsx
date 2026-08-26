@@ -93,6 +93,7 @@ const steps = [
 
 function HomePage() {
   const { data: categories } = useSuspenseQuery(categoriesQueryOptions());
+  const { isAuthenticated } = useAuth();
 
   return (
     <>
