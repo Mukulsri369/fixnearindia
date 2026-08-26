@@ -85,15 +85,44 @@ function NearbyTechniciansPage() {
           </div>
 
           <Card className="mt-6">
-            <CardContent className="grid gap-4 pt-6 sm:grid-cols-2">
+            <CardContent className="grid gap-4 pt-6 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
-                <Input
-                  id="city"
-                  placeholder="Bangalore"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                />
+                <Label>State</Label>
+                <Select
+                  value={state}
+                  onValueChange={(value) => {
+                    setState(value);
+                    setCity("all");
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="All states" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All states</SelectItem>
+                    {INDIA_STATES.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>City</Label>
+                <Select value={city} onValueChange={setCity}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All cities" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All cities</SelectItem>
+                    {citiesForState(state === "all" ? null : state).map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Repair category</Label>
