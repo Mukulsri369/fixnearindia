@@ -5,12 +5,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
 import { ArrowLeft, BadgeCheck, Mail, MapPin, Phone, Star, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getCategories } from "@/lib/categories.functions";
 import { getNearbyTechnicians } from "@/lib/marketplace.functions";
+import { INDIA_STATES, citiesForState } from "@/lib/india-locations";
 
 const categoriesQueryOptions = () =>
   queryOptions({
@@ -42,15 +42,17 @@ export const Route = createFileRoute("/_authenticated/nearby-technicians")({
 function NearbyTechniciansPage() {
   const { data: categories } = useSuspenseQuery(categoriesQueryOptions());
   const fetchTechnicians = useServerFn(getNearbyTechnicians);
-  const [city, setCity] = useState("");
+  const [state, setState] = useState<string>("all");
+  const [city, setCity] = useState<string>("all");
   const [categoryId, setCategoryId] = useState<string>("all");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["nearby-technicians", city, categoryId],
+    queryKey: ["nearby-technicians", state, city, categoryId],
     queryFn: () =>
       fetchTechnicians({
         data: {
-          ...(city.trim() ? { city: city.trim() } : {}),
+          ...(city !== "all" ? { city } : {}),
+          ...(state !== "all" ? { state } : {}),
           ...(categoryId !== "all" ? { categoryId } : {}),
         },
       }),
@@ -82,15 +84,44 @@ function NearbyTechniciansPage() {
           </div>
 
           <Card className="mt-6">
-            <CardContent className="grid gap-4 pt-6 sm:grid-cols-2">
+            <CardContent className="grid gap-4 pt-6 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
-                <Input
-                  id="city"
-                  placeholder="Bangalore"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                />
+                <Label>State</Label>
+                <Select
+                  value={state}
+                  onValueChange={(value) => {
+                    setState(value);
+                    setCity("all");
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="All states" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All states</SelectItem>
+                    {INDIA_STATES.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>City</Label>
+                <Select value={city} onValueChange={setCity}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All cities" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All cities</SelectItem>
+                    {citiesForState(state === "all" ? null : state).map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Repair category</Label>

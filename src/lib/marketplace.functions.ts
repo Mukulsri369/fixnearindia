@@ -557,6 +557,7 @@ export const getNearbyTechnicians = createServerFn({ method: "GET" })
     z
       .object({
         city: z.string().max(100).optional(),
+        state: z.string().max(100).optional(),
         categoryId: z.string().uuid().optional(),
       })
       .parse(input ?? {}),
@@ -572,6 +573,7 @@ export const getNearbyTechnicians = createServerFn({ method: "GET" })
       .order("avg_rating", { ascending: false });
 
     if (data.city?.trim()) query = query.ilike("city", `%${data.city.trim()}%`);
+    if (data.state?.trim()) query = query.ilike("state", `%${data.state.trim()}%`);
 
     const { data: rows, error } = await query;
     if (error) throw new Error(`Failed to load technicians: ${error.message}`);

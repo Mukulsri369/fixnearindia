@@ -14,6 +14,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 import { CategoryCard } from "@/components/CategoryCard";
 import { FeatureCard } from "@/components/FeatureCard";
 import { getCategories } from "@/lib/categories.functions";
@@ -92,6 +93,7 @@ const steps = [
 
 function HomePage() {
   const { data: categories } = useSuspenseQuery(categoriesQueryOptions());
+  const { isAuthenticated } = useAuth();
 
   return (
     <>
@@ -122,7 +124,7 @@ function HomePage() {
               FixNear India connects customers with verified electronics repair experts. From laptops to air conditioners, get reliable help at fair prices.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link to="/auth">
+              <Link to={isAuthenticated ? "/new-request" : "/auth"}>
                 <Button size="lg" className="gap-2 font-medium">
                   Book a Repair <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -268,7 +270,7 @@ function HomePage() {
                 Join thousands of customers who trust FixNear India for fast, reliable repairs.
               </p>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <Link to="/auth">
+                <Link to={isAuthenticated ? "/new-request" : "/auth"}>
                   <Button size="lg" variant="secondary" className="gap-2 font-medium">
                     Get Started <ArrowRight className="h-4 w-4" />
                   </Button>

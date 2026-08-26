@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { INDIA_STATES, citiesForState } from "@/lib/india-locations";
 import { expressInterest, getAvailableRequests } from "@/lib/marketplace.functions";
 
 const ALL = "__all__";
@@ -82,7 +83,7 @@ function AvailableJobsPage() {
                 <SelectTrigger><SelectValue placeholder="All states" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ALL}>All states</SelectItem>
-                  {(data.states ?? []).map((s: string) => (
+                  {INDIA_STATES.map((s: string) => (
                     <SelectItem key={s} value={s}>{s}</SelectItem>
                   ))}
                 </SelectContent>
@@ -94,7 +95,7 @@ function AvailableJobsPage() {
                 <SelectTrigger><SelectValue placeholder="All cities" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ALL}>All cities</SelectItem>
-                  {(data.cities ?? []).map((c: string) => (
+                  {citiesForState(state).map((c: string) => (
                     <SelectItem key={c} value={c}>{c}</SelectItem>
                   ))}
                 </SelectContent>
