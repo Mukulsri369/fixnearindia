@@ -43,15 +43,17 @@ export const Route = createFileRoute("/_authenticated/nearby-technicians")({
 function NearbyTechniciansPage() {
   const { data: categories } = useSuspenseQuery(categoriesQueryOptions());
   const fetchTechnicians = useServerFn(getNearbyTechnicians);
-  const [city, setCity] = useState("");
+  const [state, setState] = useState<string>("all");
+  const [city, setCity] = useState<string>("all");
   const [categoryId, setCategoryId] = useState<string>("all");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["nearby-technicians", city, categoryId],
+    queryKey: ["nearby-technicians", state, city, categoryId],
     queryFn: () =>
       fetchTechnicians({
         data: {
-          ...(city.trim() ? { city: city.trim() } : {}),
+          ...(city !== "all" ? { city } : {}),
+          ...(state !== "all" ? { state } : {}),
           ...(categoryId !== "all" ? { categoryId } : {}),
         },
       }),
