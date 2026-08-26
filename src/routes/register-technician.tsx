@@ -201,15 +201,46 @@ function RegisterTechnicianPage() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
+                    <Label htmlFor="state">State</Label>
+                    <Select
+                      required
+                      value={form.state}
+                      onValueChange={(value) => setForm({ ...form, state: value, city: "" })}
+                    >
+                      <SelectTrigger id="state">
+                        <SelectValue placeholder="Select your state" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {INDIA_STATES.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="city">City</Label>
-                    <Input
-                      id="city"
-                      placeholder="Bangalore"
+                    <Select
                       required
                       value={form.city}
-                      onChange={(e) => setForm({ ...form, city: e.target.value })}
-                    />
+                      onValueChange={(value) => setForm({ ...form, city: value })}
+                    >
+                      <SelectTrigger id="city" disabled={!form.state}>
+                        <SelectValue placeholder={form.state ? "Select your city" : "Select a state first"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {citiesForState(form.state).map((c) => (
+                          <SelectItem key={c} value={c}>
+                            {c}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="pincode">Service Pincode</Label>
                     <Input
@@ -222,9 +253,6 @@ function RegisterTechnicianPage() {
                       onChange={(e) => setForm({ ...form, pincode: e.target.value })}
                     />
                   </div>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="experience">Experience (years)</Label>
                     <Input
@@ -236,16 +264,6 @@ function RegisterTechnicianPage() {
                       required
                       value={form.experienceYears}
                       onChange={(e) => setForm({ ...form, experienceYears: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="state">State</Label>
-                    <Input
-                      id="state"
-                      placeholder="Karnataka"
-                      required
-                      value={form.state}
-                      onChange={(e) => setForm({ ...form, state: e.target.value })}
                     />
                   </div>
                 </div>
