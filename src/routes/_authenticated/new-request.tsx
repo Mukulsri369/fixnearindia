@@ -239,23 +239,38 @@ function NewRequestPage() {
 
                 <div className="grid gap-4 sm:grid-cols-3">
                   <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
-                    <Input
-                      id="city"
-                      placeholder="Bangalore"
+                    <Label htmlFor="state">State</Label>
+                    <Select
                       required
-                      value={form.city}
-                      onChange={(e) => setForm({ ...form, city: e.target.value })}
-                    />
+                      value={form.state}
+                      onValueChange={(value) => setForm({ ...form, state: value, city: "" })}
+                    >
+                      <SelectTrigger id="state">
+                        <SelectValue placeholder="Select state" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {INDIA_STATES.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="state">State</Label>
-                    <Input
-                      id="state"
-                      placeholder="Karnataka"
-                      value={form.state}
-                      onChange={(e) => setForm({ ...form, state: e.target.value })}
-                    />
+                    <Label htmlFor="city">City</Label>
+                    <Select required value={form.city} onValueChange={(value) => setForm({ ...form, city: value })}>
+                      <SelectTrigger id="city" disabled={!form.state}>
+                        <SelectValue placeholder={form.state ? "Select city" : "Select a state first"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {citiesForState(form.state).map((c) => (
+                          <SelectItem key={c} value={c}>
+                            {c}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="pincode">Pincode</Label>
