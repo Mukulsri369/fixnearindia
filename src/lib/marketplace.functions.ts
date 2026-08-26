@@ -557,6 +557,7 @@ export const getNearbyTechnicians = createServerFn({ method: "GET" })
     z
       .object({
         city: z.string().max(100).optional(),
+        state: z.string().max(100).optional(),
         categoryId: z.string().uuid().optional(),
       })
       .parse(input ?? {}),
