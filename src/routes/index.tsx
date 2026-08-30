@@ -19,11 +19,23 @@ import { CategoryCard } from "@/components/CategoryCard";
 import { FeatureCard } from "@/components/FeatureCard";
 import { getCategories } from "@/lib/categories.functions";
 
+type Category = Awaited<ReturnType<typeof getCategories>>[number];
+
 const categoriesQueryOptions = () =>
-  queryOptions({
+  queryOptions<Category[]>({
     queryKey: ["categories"],
-    queryFn: () => getCategories(),
+    // The landing page must never blank out if the categories fetch hiccups.
+    queryFn: async () => {
+      try {
+        const result = await getCategories();
+        return Array.isArray(result) ? result : [];
+      } catch (error) {
+        console.error("Failed to load categories", error);
+        return [];
+      }
+    },
   });
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -37,7 +49,14 @@ export const Route = createFileRoute("/")({
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(categoriesQueryOptions()),
+  errorComponent: ({ error }) => (
+    <div role="alert" className="p-8 text-center text-muted-foreground">
+      {error.message}
+    </div>
+  ),
+  notFoundComponent: () => <div className="p-8 text-center">Page not found.</div>,
   component: HomePage,
+
 });
 
 const features = [
