@@ -40,6 +40,8 @@ import {
   WORKSHOP_TOOLS,
   categoriesForSegments,
 } from "@/lib/technician-catalog";
+import { brandsForCategories } from "@/lib/equipment-brands";
+
 import {
   createCatalogRequest,
   getOnboardingState,
