@@ -420,41 +420,86 @@ function RegisterTechnicianPage() {
                   {equipmentOptions.length === 0 ? (
                     <p className="text-sm text-muted-foreground">Select a service segment first.</p>
                   ) : (
-                    equipmentOptions.map(({ segment, category }) => {
-                      const picked: EquipmentPick[] = draft.equipment ?? [];
-                      const selected = picked
-                        .filter((p) => p.segment === segment.id && p.category === category.name)
-                        .map((p) => p.equipment);
-                      return (
-                        <div key={`${segment.id}-${category.name}`} className="space-y-2">
+                    <>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium">Choose a category to see its equipment</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {equipmentOptions.map(({ segment, category }) => {
+                            const key = `${segment.id}||${category.name}`;
+                            const count = (draft.equipment ?? []).filter(
+                              (p: EquipmentPick) => p.segment === segment.id && p.category === category.name,
+                            ).length;
+                            const active = key === activeEquipmentTab;
+                            return (
+                              <button
+                                key={key}
+                                type="button"
+                                onClick={() => setEquipmentTab(key)}
+                                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                                  active
+                                    ? "border-primary bg-primary text-primary-foreground"
+                                    : "border-border hover:bg-muted"
+                                }`}
+                              >
+                                {category.name}
+                                {count > 0 && (
+                                  <span
+                                    className={`rounded-full px-1.5 text-[10px] ${
+                                      active ? "bg-primary-foreground/20" : "bg-primary/10 text-primary"
+                                    }`}
+                                  >
+                                    {count}
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {activeEquipmentCategory ? (
+                        <div className="space-y-2">
                           <p className="text-sm font-medium">
-                            {segment.label} • {category.name}
+                            {activeEquipmentCategory.segment.label} • {activeEquipmentCategory.category.name}
                           </p>
                           <ChipPicker
-                            options={category.equipment}
-                            selected={selected}
-                            placeholder={`Search ${category.name} equipment…`}
+                            options={activeEquipmentCategory.category.equipment}
+                            selected={(draft.equipment ?? [])
+                              .filter(
+                                (p: EquipmentPick) =>
+                                  p.segment === activeEquipmentCategory.segment.id &&
+                                  p.category === activeEquipmentCategory.category.name,
+                              )
+                              .map((p: EquipmentPick) => p.equipment)}
+                            placeholder={`Search ${activeEquipmentCategory.category.name} equipment…`}
                             onToggle={(equipment) =>
                               setDraft((prev) => {
+                                const segmentId = activeEquipmentCategory.segment.id;
+                                const categoryName = activeEquipmentCategory.category.name;
                                 const list: EquipmentPick[] = prev.equipment ?? [];
                                 const exists = list.some(
-                                  (p) => p.segment === segment.id && p.category === category.name && p.equipment === equipment,
+                                  (p) =>
+                                    p.segment === segmentId && p.category === categoryName && p.equipment === equipment,
                                 );
                                 return {
                                   ...prev,
                                   equipment: exists
                                     ? list.filter(
                                         (p) =>
-                                          !(p.segment === segment.id && p.category === category.name && p.equipment === equipment),
+                                          !(
+                                            p.segment === segmentId &&
+                                            p.category === categoryName &&
+                                            p.equipment === equipment
+                                          ),
                                       )
-                                    : [...list, { segment: segment.id, category: category.name, equipment }],
+                                    : [...list, { segment: segmentId, category: categoryName, equipment }],
                                 };
                               })
                             }
                           />
                         </div>
-                      );
-                    })
+                      ) : null}
+                    </>
                   )}
 
                   <div className="space-y-2">
@@ -472,17 +517,69 @@ function RegisterTechnicianPage() {
               )}
 
               {step === 5 && (
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">Select the brands you are confident servicing.</p>
-                  <ChipPicker
-                    options={ALL_BRANDS}
-                    selected={draft.brands ?? []}
-                    placeholder="Search brands…"
-                    onToggle={(v) => toggleIn("brands", v)}
-                  />
+                <div className="space-y-5">
+                  {brandGroups.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      Select your equipment in the previous step to see the brands that make it.
+                    </p>
+                  ) : (
+                    <>
+                      <p className="text-sm text-muted-foreground">
+                        Brands are matched to the equipment you selected. Pick the ones you can confidently service.
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {brandGroups.map((group) => {
+                          const active = group.category === activeBrandTab;
+                          const count = (draft.brands ?? []).filter((b: string) => group.brands.includes(b)).length;
+                          return (
+                            <button
+                              key={group.category}
+                              type="button"
+                              onClick={() => setBrandTab(group.category)}
+                              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                                active
+                                  ? "border-primary bg-primary text-primary-foreground"
+                                  : "border-border hover:bg-muted"
+                              }`}
+                            >
+                              {group.category}
+                              {count > 0 && (
+                                <span
+                                  className={`rounded-full px-1.5 text-[10px] ${
+                                    active ? "bg-primary-foreground/20" : "bg-primary/10 text-primary"
+                                  }`}
+                                >
+                                  {count}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {activeBrandGroup ? (
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium">{activeBrandGroup.category} brands</p>
+                          <ChipPicker
+                            options={activeBrandGroup.brands}
+                            selected={(draft.brands ?? []).filter((b: string) => activeBrandGroup.brands.includes(b))}
+                            placeholder={`Search ${activeBrandGroup.category} brands…`}
+                            onToggle={(v) => toggleIn("brands", v)}
+                          />
+                        </div>
+                      ) : null}
+
+                      {(draft.brands ?? []).length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          {(draft.brands ?? []).length} brand(s) selected in total.
+                        </p>
+                      )}
+                    </>
+                  )}
                   <MissingItem kind="brand" onSubmit={doCatalogRequest} />
                 </div>
               )}
+
 
               {step === 6 && (
                 <ChipPicker
