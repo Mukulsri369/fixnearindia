@@ -3,7 +3,7 @@ import { queryOptions, useQuery, useQueryClient, useSuspenseQuery } from "@tanst
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { FileText, Loader2 } from "lucide-react";
+import { FileText, Loader2, ShieldCheck, UserPlus, UserMinus } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import {
@@ -20,6 +21,7 @@ import {
   setCatalogRequestStatus,
   setOnboardingStatus,
 } from "@/lib/onboarding.functions";
+import { grantAdminByEmail, listAdmins, revokeAdmin } from "@/lib/admin-users.functions";
 import { ONBOARDING_STATUS_LABELS, SEGMENTS } from "@/lib/technician-catalog";
 
 const applicationsQueryOptions = () =>
@@ -85,6 +87,7 @@ function AdminPage() {
           <TabsList>
             <TabsTrigger value="applications">Applications ({applications.length})</TabsTrigger>
             <TabsTrigger value="catalog">Catalog requests</TabsTrigger>
+            <TabsTrigger value="admins">Admins</TabsTrigger>
           </TabsList>
 
           <TabsContent value="applications" className="mt-6 space-y-4">
@@ -118,6 +121,10 @@ function AdminPage() {
 
           <TabsContent value="catalog" className="mt-6">
             <CatalogRequests />
+          </TabsContent>
+
+          <TabsContent value="admins" className="mt-6">
+            <AdminsSection />
           </TabsContent>
         </Tabs>
       </div>
@@ -338,6 +345,128 @@ function CatalogRequests() {
           </CardContent>
         </Card>
       ))}
+    </div>
+  );
+}
+
+function AdminsSection() {
+  const load = useServerFn(listAdmins);
+  const grant = useServerFn(grantAdminByEmail);
+  const revoke = useServerFn(revokeAdmin);
+  const queryClient = useQueryClient();
+  const { data: admins, isLoading } = useQuery({ queryKey: ["admin-users"], queryFn: () => load(), retry: false });
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [revoking, setRevoking] = useState<string | null>(null);
+
+  const add = async () => {
+    const trimmed = email.trim();
+    if (!trimmed) return;
+    setBusy(true);
+    try {
+      await grant({ data: { email: trimmed } });
+      toast.success(`${trimmed} is now an admin`);
+      setEmail("");
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    } catch (err: any) {
+      toast.error(err.message || "Could not grant admin");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const remove = async (userId: string, adminEmail: string) => {
+    if (!window.confirm(`Remove admin access for ${adminEmail}?`)) return;
+    setRevoking(userId);
+    try {
+      await revoke({ data: { userId } });
+      toast.success(`Admin access removed for ${adminEmail}`);
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    } catch (err: any) {
+      toast.error(err.message || "Could not revoke admin");
+    } finally {
+      setRevoking(null);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <UserPlus className="h-5 w-5" /> Add an admin
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input
+              type="email"
+              placeholder="their-email@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && add()}
+            />
+            <Button onClick={add} disabled={busy || !email.trim()}>
+              {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Make admin
+            </Button>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            The person must already have a FixNear account. Admins can review technician applications, manage catalog
+            requests and add other admins.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <ShieldCheck className="h-5 w-5" /> Current admins
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          ) : !admins || admins.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No admins found.</p>
+          ) : (
+            <div className="divide-y divide-border">
+              {admins.map((admin: any) => (
+                <div key={admin.userId} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                  <div>
+                    <p className="text-sm font-medium">
+                      {admin.fullName || "Unnamed user"}
+                      {admin.isSelf && (
+                        <Badge variant="secondary" className="ml-2">
+                          You
+                        </Badge>
+                      )}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {admin.email} • admin since {new Date(admin.since).toLocaleDateString("en-IN")}
+                    </p>
+                  </div>
+                  {!admin.isSelf && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={revoking === admin.userId}
+                      onClick={() => remove(admin.userId, admin.email)}
+                    >
+                      {revoking === admin.userId ? (
+                        <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <UserMinus className="mr-2 h-3.5 w-3.5" />
+                      )}
+                      Revoke
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
