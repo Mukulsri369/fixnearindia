@@ -1,29 +1,43 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Loader2, X } from "lucide-react";
+import { FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getAdminTechnicians, setTechnicianApproval } from "@/lib/marketplace.functions";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const adminQueryOptions = () =>
+import {
+  getCatalogRequests,
+  getOnboardingApplications,
+  getTechnicianDocumentUrl,
+  setCatalogRequestStatus,
+  setOnboardingStatus,
+} from "@/lib/onboarding.functions";
+import { ONBOARDING_STATUS_LABELS, SEGMENTS } from "@/lib/technician-catalog";
+
+const applicationsQueryOptions = () =>
   queryOptions({
-    queryKey: ["admin-technicians"],
-    queryFn: () => getAdminTechnicians(),
+    queryKey: ["admin-onboarding"],
+    queryFn: () => getOnboardingApplications(),
     retry: false,
   });
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
-      { title: "Technician Approvals — FixNear India" },
-      { name: "description", content: "Review and approve technician applications on FixNear India." },
-      { property: "og:title", content: "Technician Approvals — FixNear India" },
-      { property: "og:description", content: "Review and approve technician applications on FixNear India." },
+      { title: "Technician Verification — FixNear India" },
+      { name: "description", content: "Review, verify and manage technician onboarding applications on FixNear India." },
+      { property: "og:title", content: "Technician Verification — FixNear India" },
+      { property: "og:description", content: "Review and verify technician onboarding applications on FixNear India." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: AdminPage,
@@ -33,124 +47,297 @@ export const Route = createFileRoute("/_authenticated/admin")({
       <p className="mt-2 text-muted-foreground">This page is only available to platform admins.</p>
     </div>
   ),
+  notFoundComponent: () => <div className="px-4 py-20 text-center">Page not found</div>,
 });
 
+const STATUS_FILTERS = [
+  "all",
+  "submitted",
+  "under_review",
+  "verification_required",
+  "verified",
+  "active",
+  "suspended",
+  "rejected",
+] as const;
+
 function AdminPage() {
-  const { data: technicians } = useSuspenseQuery(adminQueryOptions());
+  const { data: applications } = useSuspenseQuery(applicationsQueryOptions());
   const queryClient = useQueryClient();
-  const doApprove = useServerFn(setTechnicianApproval);
-  const [busyId, setBusyId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<string>("all");
 
-  const handle = async (technicianId: string, approve: boolean) => {
-    setBusyId(technicianId);
-    try {
-      await doApprove({ data: { technicianId, approve } });
-      toast.success(approve ? "Technician approved" : "Technician approval revoked");
-      queryClient.invalidateQueries({ queryKey: ["admin-technicians"] });
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update technician");
-    } finally {
-      setBusyId(null);
-    }
-  };
-
-  const pending = technicians.filter((t: any) => !t.is_approved);
-  const approved = technicians.filter((t: any) => t.is_approved);
+  const filtered = useMemo(
+    () => (filter === "all" ? applications : applications.filter((a: any) => a.onboarding_status === filter)),
+    [applications, filter],
+  );
 
   return (
     <div className="px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-5xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">Technician approvals</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Technician verification</h1>
           <p className="mt-1 text-muted-foreground">
-            Review applications. Approved technicians can see and bid on nearby repair requests.
+            Review onboarding applications, verify documents and manage technician status.
           </p>
         </div>
 
-        <Section title={`Pending approval (${pending.length})`}>
-          {pending.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No pending applications.</p>
-          ) : (
-            pending.map((tech: any) => (
-              <TechCard key={tech.id} tech={tech} busy={busyId === tech.id} onApprove={() => handle(tech.id, true)} />
-            ))
-          )}
-        </Section>
+        <Tabs defaultValue="applications">
+          <TabsList>
+            <TabsTrigger value="applications">Applications ({applications.length})</TabsTrigger>
+            <TabsTrigger value="catalog">Catalog requests</TabsTrigger>
+          </TabsList>
 
-        <Section title={`Approved (${approved.length})`}>
-          {approved.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No approved technicians yet.</p>
-          ) : (
-            approved.map((tech: any) => (
-              <TechCard key={tech.id} tech={tech} busy={busyId === tech.id} onRevoke={() => handle(tech.id, false)} />
-            ))
-          )}
-        </Section>
+          <TabsContent value="applications" className="mt-6 space-y-4">
+            <div className="w-56">
+              <Select value={filter} onValueChange={setFilter}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_FILTERS.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s === "all" ? "All statuses" : (ONBOARDING_STATUS_LABELS[s] ?? s)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {filtered.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No applications in this status.</p>
+            ) : (
+              filtered.map((application: any) => (
+                <ApplicationCard
+                  key={application.id}
+                  application={application}
+                  onChanged={() => queryClient.invalidateQueries({ queryKey: ["admin-onboarding"] })}
+                />
+              ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="catalog" className="mt-6">
+            <CatalogRequests />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function ApplicationCard({ application, onChanged }: { application: any; onChanged: () => void }) {
+  const doStatus = useServerFn(setOnboardingStatus);
+  const doDocUrl = useServerFn(getTechnicianDocumentUrl);
+  const [notes, setNotes] = useState<string>(application.review_notes ?? "");
+  const [busy, setBusy] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
+
+  const capabilities = application.technician_capabilities ?? [];
+  const equipment = capabilities.filter((c: any) => c.equipment);
+  const skills = capabilities.filter((c: any) => c.skill);
+  const brands = capabilities.filter((c: any) => c.brand);
+  const services = capabilities.filter((c: any) => c.service);
+
+  const act = async (status: string) => {
+    setBusy(status);
+    try {
+      await doStatus({ data: { technicianId: application.id, status: status as any, notes: notes || null } });
+      toast.success(`Marked as ${ONBOARDING_STATUS_LABELS[status] ?? status}`);
+      onChanged();
+    } catch (err: any) {
+      toast.error(err.message || "Could not update application");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const openDoc = async (path: string) => {
+    try {
+      const { url } = await doDocUrl({ data: { path } });
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (err: any) {
+      toast.error(err.message || "Could not open document");
+    }
+  };
+
   return (
-    <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-10 space-y-4">
-      <h2 className="text-xl font-semibold">{title}</h2>
-      {children}
-    </motion.section>
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle className="text-lg">
+                {application.display_name || application.profiles?.full_name || "Unnamed technician"}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {application.technician_type ? `${application.technician_type} • ` : ""}
+                {application.city}
+                {application.state ? `, ${application.state}` : ""} • {application.experience_years ?? 0} yrs
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {application.contact_phone ?? application.profiles?.phone ?? "—"} • {application.contact_email ?? "—"}
+              </p>
+            </div>
+            <div className="flex flex-col items-end gap-1">
+              <Badge variant={application.is_approved ? "default" : "secondary"}>
+                {ONBOARDING_STATUS_LABELS[application.onboarding_status] ?? application.onboarding_status}
+              </Badge>
+              <span className="text-xs text-muted-foreground">{application.completion_percent ?? 0}% complete</span>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-1.5">
+            {(application.segments ?? []).map((segment: string) => (
+              <Badge key={segment} variant="outline">
+                {SEGMENTS.find((s) => s.id === segment)?.label ?? segment}
+              </Badge>
+            ))}
+          </div>
+
+          <Button variant="ghost" size="sm" onClick={() => setExpanded((v) => !v)}>
+            {expanded ? "Hide details" : "View full application"}
+          </Button>
+
+          {expanded && (
+            <div className="space-y-4 rounded-xl border border-border p-4 text-sm">
+              <Detail label="Headline" value={application.headline} />
+              <Detail label="Service modes" value={(application.service_modes ?? []).join(", ")} />
+              <Detail
+                label="Service areas"
+                value={(application.technician_service_areas ?? [])
+                  .map((a: any) => `${a.city}, ${a.state}${a.pan_india ? " (pan-India)" : ""}`)
+                  .join(" • ")}
+              />
+              <Detail label="Equipment" value={equipment.map((e: any) => e.equipment).join(", ")} />
+              <Detail label="Skills" value={skills.map((s: any) => s.skill).join(", ")} />
+              <Detail label="Brands" value={brands.map((b: any) => b.brand).join(", ")} />
+              <Detail label="Services" value={services.map((s: any) => s.service).join(", ")} />
+              <Detail
+                label="Qualifications"
+                value={(application.technician_qualifications ?? [])
+                  .map((q: any) => [q.qualification, q.institute, q.year].filter(Boolean).join(" — "))
+                  .join(" • ")}
+              />
+              <Detail
+                label="Certifications"
+                value={(application.technician_certifications ?? [])
+                  .map((c: any) => `${c.name}${c.issuing_organization ? ` (${c.issuing_organization})` : ""}`)
+                  .join(" • ")}
+              />
+              <Detail label="Availability" value={(application.availability?.days ?? []).join(", ")} />
+              <Detail label="Pricing" value={application.pricing?.model} />
+              <Detail label="Business type" value={application.business?.businessType} />
+              <Detail label="GST" value={application.business?.gstNumber} />
+
+              <div>
+                <p className="font-medium">Documents</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {(application.technician_documents ?? []).length === 0 ? (
+                    <span className="text-muted-foreground">No documents uploaded</span>
+                  ) : (
+                    application.technician_documents.map((doc: any) => (
+                      <Button key={doc.id} size="sm" variant="outline" onClick={() => openDoc(doc.file_path)}>
+                        <FileText className="mr-2 h-3.5 w-3.5" />
+                        {doc.document_type}
+                      </Button>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <Textarea
+            rows={2}
+            placeholder="Review notes (shared with the technician when requesting changes or rejecting)"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+
+          <div className="flex flex-wrap gap-2">
+            {[
+              { status: "under_review", label: "Mark under review", variant: "outline" as const },
+              { status: "verification_required", label: "Request changes", variant: "outline" as const },
+              { status: "active", label: "Approve & activate", variant: "default" as const },
+              { status: "suspended", label: "Suspend", variant: "outline" as const },
+              { status: "rejected", label: "Reject", variant: "outline" as const },
+              { status: "inactive", label: "Deactivate", variant: "ghost" as const },
+            ].map((action) => (
+              <Button
+                key={action.status}
+                size="sm"
+                variant={action.variant}
+                disabled={!!busy}
+                onClick={() => act(action.status)}
+              >
+                {busy === action.status ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
+                {action.label}
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
 
-function TechCard({
-  tech,
-  busy,
-  onApprove,
-  onRevoke,
-}: {
-  tech: any;
-  busy: boolean;
-  onApprove?: () => void;
-  onRevoke?: () => void;
-}) {
+function Detail({ label, value }: { label: string; value?: string | null }) {
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <CardTitle className="text-lg">{tech.profiles?.full_name ?? "Unnamed technician"}</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              {tech.business_name ? `${tech.business_name} • ` : ""}
-              {tech.city} • {tech.pincode} • {tech.experience_years} yrs experience
-            </p>
-          </div>
-          <Badge variant={tech.is_approved ? "default" : "secondary"}>
-            {tech.is_approved ? "approved" : "pending"}
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground">Phone: {tech.profiles?.phone ?? "—"}</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {(tech.technician_categories ?? []).map((tc: any, i: number) => (
-            <Badge key={i} variant="outline">
-              {tc.categories?.name}
-            </Badge>
-          ))}
-        </div>
-        <div className="mt-4 flex gap-2">
-          {onApprove && (
-            <Button size="sm" disabled={busy} onClick={onApprove}>
-              {busy ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <Check className="mr-2 h-3 w-3" />}
-              Approve
-            </Button>
-          )}
-          {onRevoke && (
-            <Button size="sm" variant="outline" disabled={busy} onClick={onRevoke}>
-              {busy ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <X className="mr-2 h-3 w-3" />}
-              Revoke approval
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <div>
+      <p className="font-medium">{label}</p>
+      <p className="text-muted-foreground">{value || "—"}</p>
+    </div>
+  );
+}
+
+function CatalogRequests() {
+  const load = useServerFn(getCatalogRequests);
+  const update = useServerFn(setCatalogRequestStatus);
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useQuery({ queryKey: ["admin-catalog-requests"], queryFn: () => load(), retry: false });
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const act = async (requestId: string, status: "approved" | "rejected") => {
+    setBusy(requestId);
+    try {
+      await update({ data: { requestId, status } });
+      toast.success(`Request ${status}`);
+      queryClient.invalidateQueries({ queryKey: ["admin-catalog-requests"] });
+    } catch (err: any) {
+      toast.error(err.message || "Could not update request");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  if (isLoading) return <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />;
+  if (!data || data.length === 0) return <p className="text-sm text-muted-foreground">No catalog requests.</p>;
+
+  return (
+    <div className="space-y-3">
+      {data.map((request: any) => (
+        <Card key={request.id}>
+          <CardContent className="flex flex-wrap items-start justify-between gap-4 pt-6">
+            <div>
+              <p className="font-medium">
+                {request.name} <Badge variant="outline">{request.kind}</Badge>
+              </p>
+              <p className="text-sm text-muted-foreground">{request.description || "No details provided"}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant={request.status === "approved" ? "default" : "secondary"}>{request.status}</Badge>
+              <Button size="sm" disabled={busy === request.id} onClick={() => act(request.id, "approved")}>
+                Approve
+              </Button>
+              <Button size="sm" variant="outline" disabled={busy === request.id} onClick={() => act(request.id, "rejected")}>
+                Reject
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 }
