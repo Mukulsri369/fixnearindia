@@ -345,6 +345,8 @@ function CatalogRequests() {
           </CardContent>
         </Card>
       ))}
+    </div>
+  );
 }
 
 function AdminsSection() {
