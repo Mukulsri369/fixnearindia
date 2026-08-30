@@ -305,6 +305,25 @@ function RegisterTechnicianPage() {
   }
 
   const equipmentOptions = categoriesForSegments(draft.segments ?? []);
+  const activeEquipmentTab =
+    equipmentTab && equipmentOptions.some((o) => `${o.segment.id}||${o.category.name}` === equipmentTab)
+      ? equipmentTab
+      : equipmentOptions.length > 0
+        ? `${equipmentOptions[0]!.segment.id}||${equipmentOptions[0]!.category.name}`
+        : null;
+  const activeEquipmentCategory =
+    equipmentOptions.find(({ segment, category }) => `${segment.id}||${category.name}` === activeEquipmentTab) ?? null;
+
+  const selectedEquipmentCategories = Array.from(
+    new Set((draft.equipment ?? []).map((p: EquipmentPick) => p.category)),
+  );
+  const brandGroups = brandsForCategories(selectedEquipmentCategories);
+  const activeBrandTab =
+    brandTab && brandGroups.some((g) => g.category === brandTab)
+      ? brandTab
+      : (brandGroups[0]?.category ?? null);
+  const activeBrandGroup = brandGroups.find((g) => g.category === activeBrandTab) ?? null;
+
 
   return (
     <div className="px-4 py-10 sm:px-6 lg:px-8">
