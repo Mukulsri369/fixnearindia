@@ -49,7 +49,14 @@ export const Route = createFileRoute("/")({
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(categoriesQueryOptions()),
+  errorComponent: ({ error }) => (
+    <div role="alert" className="p-8 text-center text-muted-foreground">
+      {error.message}
+    </div>
+  ),
+  notFoundComponent: () => <div className="p-8 text-center">Page not found.</div>,
   component: HomePage,
+
 });
 
 const features = [
