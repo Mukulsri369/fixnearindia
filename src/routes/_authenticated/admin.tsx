@@ -65,11 +65,9 @@ const STATUS_FILTERS = [
 
 function AdminPage() {
   const { data, isLoading, error } = useQuery(applicationsQueryOptions());
-  const applications = data ?? [];
+  const applications = data?.applications ?? [];
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<string>("all");
-
-  const isForbidden = !!error && /admin access required/i.test(String((error as Error).message ?? ""));
 
   if (isLoading) {
     return (
@@ -79,7 +77,7 @@ function AdminPage() {
     );
   }
 
-  if (isForbidden) {
+  if (data && !data.authorized) {
     return (
       <div className="px-4 py-20 text-center">
         <h1 className="text-2xl font-bold">Admin access required</h1>
