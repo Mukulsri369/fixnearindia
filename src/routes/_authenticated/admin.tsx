@@ -3,7 +3,7 @@ import { queryOptions, useQuery, useQueryClient, useSuspenseQuery } from "@tanst
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { FileText, Loader2 } from "lucide-react";
+import { FileText, Loader2, ShieldCheck, UserPlus, UserMinus } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import {
@@ -20,6 +21,7 @@ import {
   setCatalogRequestStatus,
   setOnboardingStatus,
 } from "@/lib/onboarding.functions";
+import { grantAdminByEmail, listAdmins, revokeAdmin } from "@/lib/admin-users.functions";
 import { ONBOARDING_STATUS_LABELS, SEGMENTS } from "@/lib/technician-catalog";
 
 const applicationsQueryOptions = () =>
@@ -85,6 +87,7 @@ function AdminPage() {
           <TabsList>
             <TabsTrigger value="applications">Applications ({applications.length})</TabsTrigger>
             <TabsTrigger value="catalog">Catalog requests</TabsTrigger>
+            <TabsTrigger value="admins">Admins</TabsTrigger>
           </TabsList>
 
           <TabsContent value="applications" className="mt-6 space-y-4">
@@ -118,6 +121,10 @@ function AdminPage() {
 
           <TabsContent value="catalog" className="mt-6">
             <CatalogRequests />
+          </TabsContent>
+
+          <TabsContent value="admins" className="mt-6">
+            <AdminsSection />
           </TabsContent>
         </Tabs>
       </div>
