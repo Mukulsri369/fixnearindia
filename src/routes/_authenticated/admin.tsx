@@ -434,14 +434,14 @@ function AdminsSection() {
               {admins.map((admin: any) => (
                 <div key={admin.userId} className="flex flex-wrap items-center justify-between gap-3 py-3">
                   <div>
-                    <p className="text-sm font-medium">
+                    <div className="text-sm font-medium">
                       {admin.fullName || "Unnamed user"}
                       {admin.isSelf && (
                         <Badge variant="secondary" className="ml-2">
                           You
                         </Badge>
                       )}
-                    </p>
+                    </div>
                     <p className="text-xs text-muted-foreground">
                       {admin.email} • admin since {new Date(admin.since).toLocaleDateString("en-IN")}
                     </p>
