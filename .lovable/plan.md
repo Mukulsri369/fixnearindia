@@ -1,36 +1,29 @@
-Plan: FixNear India — Electronics Repair Technician Marketplace
+# Plan: Admin Management Page
 
-**Phase 1 — Foundation (this turn)**
-- Create database schema for profiles, categories, technicians, repair requests, technician categories, reviews, documents, locations, notifications.
-- Set up user roles table with `admin`, `technician`, `customer` enum.
-- Implement RLS policies and GRANTs so authenticated users can access their own data and admins can manage approvals.
-- Build a public landing page with hero, categories, features, CTA, and footer.
-- Add public routes: About, Contact, Privacy, Terms, Register as Technician, Login.
-- Set up root layout, navigation, and dark/light mode support.
+Add a section in your admin dashboard where you can grant or revoke the admin role for any registered user by email — no more manual database changes.
 
-**Phase 2 — Authentication & User Profiles (next turn)**
-- Implement email/password and Google OAuth sign-in via Lovable Cloud auth.
-- Add `profiles` table with auto-creation trigger on signup.
-- Build `/auth` page for sign-in/sign-up.
-- Build `/reset-password` page.
-- Create customer profile setup and technician registration forms.
-- Add protected `_authenticated` routes for customer and technician dashboards.
+## What you'll get
 
-**Phase 3 — Customer Flow (next turn)**
-- Customer dashboard: view and create repair requests.
-- Create repair request form with device category, brand, model, issue, priority, preferred visit time, up to 5 images, and GPS location.
-- Matching server function: find technicians within service radius for the requested category, sorted by distance, rating, experience, and availability.
-- Technician request list and accept/reject workflow.
-- Reveal contact details only after a technician accepts a request.
+- A new "Admins" tab/section inside the existing `/admin` dashboard.
+- A list of current admins (email, name, when they became admin).
+- An input to add a new admin by email address.
+- A "Revoke" button next to each admin to remove their admin access (with a safety rule: you cannot remove your own admin role, so you can never lock yourself out).
 
-**Phase 4 — Technician & Admin Flow (next turn)**
-- Technician dashboard: manage profile, service areas, availability, requests, ratings, and reviews.
-- Admin panel: approve/reject technicians, manage users, categories, repair requests, and view basic analytics.
-- Google Maps placeholder UI (the user has not provided an API key yet; geocoding will fall back to city/state text search).
+## How it works (technical)
 
-**Notes**
-- This plan uses Lovable Cloud for auth, database, and storage.
-- Role checks use the `user_roles` table + `has_role` security definer function.
-- The admin approval workflow is required before technician profiles are visible to customers.
-- The matching engine will be a server function with location distance calculation.
-- No Google Maps API key is provided yet, so maps are mocked/placeholder until one is supplied.
+1. **Server functions** in a new `src/lib/admin-users.functions.ts`, each guarded by the existing admin check (looks up your `admin` row in `user_roles` — same as the technician verification console):
+   - `listAdmins` — returns users who hold the admin role, with their profile name/email.
+   - `grantAdminByEmail` — looks up the user by email via the privileged server client (loaded inside the handler), inserts an `admin` row into `user_roles`. Returns a clear error if no account exists with that email.
+   - `revokeAdmin` — deletes the admin role row for the given user, but refuses when the target is the caller themselves.
+2. **UI**: add an "Admins" section to `src/routes/_authenticated/admin.tsx` with the list, an email input + "Make admin" button, and revoke buttons with a confirmation.
+3. Only admins can reach these functions — every call re-verifies the caller's admin role server-side, so customers/technicians cannot grant themselves admin even if they call the endpoint directly.
+
+## Notes
+
+- The person must have signed up to the app first — granting by email only works for existing accounts.
+- Your own account stays protected by the existing platform-owner auto-admin logic.
+
+## Verification
+
+- Typecheck + build pass.
+- Browser test signed in as your admin account: open `/admin`, see the Admins section, grant and revoke a test role, and confirm a non-admin cannot call the functions.
