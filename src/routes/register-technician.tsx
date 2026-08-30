@@ -209,10 +209,17 @@ function RegisterTechnicianPage() {
   };
 
   const handleSubmitApplication = async () => {
+    const readyDocs = (draft.documents ?? []).filter((d: any) => d?.filePath);
+    if (readyDocs.length === 0) {
+      toast.error("Add at least one document and wait for the upload to finish");
+      setStep(14);
+      return;
+    }
+    const payload = { ...draft, documents: readyDocs };
     setSubmitting(true);
     try {
-      await doSave({ data: { currentStep: 16, completionPercent: completion, data: draft } });
-      await doSubmit({});
+      await doSave({ data: { currentStep: 16, completionPercent: completion, data: payload } });
+      await doSubmit({ data: { data: payload } });
       toast.success("Application submitted — our team will review it shortly.");
       navigate({ to: "/dashboard" });
     } catch (err: any) {
@@ -221,6 +228,7 @@ function RegisterTechnicianPage() {
       setSubmitting(false);
     }
   };
+
 
   if (authLoading) {
     return (
