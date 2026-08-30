@@ -167,7 +167,8 @@ type Draft = Record<string, any>;
 
 export const submitOnboarding = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input) => z.object({ data: draftSchema.optional() }).parse(input ?? {}))
+  .handler(async ({ data: input, context }) => {
     const { supabase, userId } = context;
     const email = String((context.claims as any)?.email ?? "").trim().toLowerCase();
 
@@ -177,7 +178,19 @@ export const submitOnboarding = createServerFn({ method: "POST" })
       .eq("user_id", userId)
       .maybeSingle();
 
-    const draft = ((draftRow?.data as Draft) ?? {}) as Draft;
+    const draft = { ...(((draftRow?.data as Draft) ?? {}) as Draft), ...((input.data as Draft) ?? {}) } as Draft;
+
+    if (draftRow && input.data) {
+      await supabase
+        .from("technician_onboarding")
+        .update({ data: draft as any, current_step: 16, completion_percent: 100 })
+        .eq("id", draftRow.id);
+    }
+
+    // keep only documents that actually finished uploading
+    draft.documents = (Array.isArray(draft.documents) ? draft.documents : []).filter(
+      (d: any) => d && typeof d.filePath === "string" && d.filePath.length > 0,
+    );
 
     if (!draft.fullName || String(draft.fullName).trim().length < 2) throw new Error("Full name is required");
     if (!draft.phone || String(draft.phone).replace(/\D/g, "").length < 10) throw new Error("A valid phone number is required");
@@ -186,7 +199,9 @@ export const submitOnboarding = createServerFn({ method: "POST" })
     if (!Array.isArray(draft.services) || draft.services.length === 0) throw new Error("Select at least one service offered");
     if (!Array.isArray(draft.serviceAreas) || draft.serviceAreas.length === 0) throw new Error("Add at least one service area");
     if (!Array.isArray(draft.serviceModes) || draft.serviceModes.length === 0) throw new Error("Select at least one service mode");
-    if (!Array.isArray(draft.documents) || draft.documents.length === 0) throw new Error("Upload at least one verification document");
+    if (draft.documents.length === 0)
+      throw new Error("Upload at least one verification document (choose a file so it finishes uploading)");
+
 
     const normalizedPhone = String(draft.phone).replace(/\D/g, "");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
