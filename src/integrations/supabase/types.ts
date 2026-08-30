@@ -44,6 +44,65 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_catalog_requests: {
+        Row: {
+          brand: string | null
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          kind: string
+          model_number: string | null
+          name: string
+          photo_path: string | null
+          segment: string | null
+          status: string
+          technician_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          kind: string
+          model_number?: string | null
+          name: string
+          photo_path?: string | null
+          segment?: string | null
+          status?: string
+          technician_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          kind?: string
+          model_number?: string | null
+          name?: string
+          photo_path?: string | null
+          segment?: string | null
+          status?: string
+          technician_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_catalog_requests_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           amount: number
@@ -414,6 +473,65 @@ export type Database = {
           },
         ]
       }
+      technician_capabilities: {
+        Row: {
+          brand: string | null
+          category: string | null
+          created_at: string
+          equipment: string | null
+          equipment_type: string | null
+          experience_years: number
+          id: string
+          segment: string
+          service: string | null
+          skill: string | null
+          skill_level: string | null
+          technician_id: string
+          updated_at: string
+          verification_status: string
+        }
+        Insert: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          equipment?: string | null
+          equipment_type?: string | null
+          experience_years?: number
+          id?: string
+          segment: string
+          service?: string | null
+          skill?: string | null
+          skill_level?: string | null
+          technician_id: string
+          updated_at?: string
+          verification_status?: string
+        }
+        Update: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          equipment?: string | null
+          equipment_type?: string | null
+          experience_years?: number
+          id?: string
+          segment?: string
+          service?: string | null
+          skill?: string | null
+          skill_level?: string | null
+          technician_id?: string
+          updated_at?: string
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technician_capabilities_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       technician_categories: {
         Row: {
           category_id: string
@@ -447,22 +565,260 @@ export type Database = {
           },
         ]
       }
+      technician_certifications: {
+        Row: {
+          certificate_number: string | null
+          certificate_url: string | null
+          created_at: string
+          expiry_date: string | null
+          id: string
+          issue_date: string | null
+          issuing_organization: string | null
+          name: string
+          technician_id: string
+          updated_at: string
+          verification_status: string
+        }
+        Insert: {
+          certificate_number?: string | null
+          certificate_url?: string | null
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string | null
+          issuing_organization?: string | null
+          name: string
+          technician_id: string
+          updated_at?: string
+          verification_status?: string
+        }
+        Update: {
+          certificate_number?: string | null
+          certificate_url?: string | null
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string | null
+          issuing_organization?: string | null
+          name?: string
+          technician_id?: string
+          updated_at?: string
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technician_certifications_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      technician_documents: {
+        Row: {
+          created_at: string
+          document_type: string
+          file_path: string
+          id: string
+          rejection_reason: string | null
+          technician_id: string
+          updated_at: string
+          verification_status: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          file_path: string
+          id?: string
+          rejection_reason?: string | null
+          technician_id: string
+          updated_at?: string
+          verification_status?: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          file_path?: string
+          id?: string
+          rejection_reason?: string | null
+          technician_id?: string
+          updated_at?: string
+          verification_status?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technician_documents_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      technician_onboarding: {
+        Row: {
+          completion_percent: number
+          created_at: string
+          current_step: number
+          data: Json
+          id: string
+          status: string
+          submitted_at: string | null
+          technician_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completion_percent?: number
+          created_at?: string
+          current_step?: number
+          data?: Json
+          id?: string
+          status?: string
+          submitted_at?: string | null
+          technician_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completion_percent?: number
+          created_at?: string
+          current_step?: number
+          data?: Json
+          id?: string
+          status?: string
+          submitted_at?: string | null
+          technician_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technician_onboarding_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      technician_payment_details: {
+        Row: {
+          account_holder_name: string | null
+          account_number: string | null
+          created_at: string
+          id: string
+          ifsc: string | null
+          technician_id: string
+          updated_at: string
+          upi_id: string | null
+        }
+        Insert: {
+          account_holder_name?: string | null
+          account_number?: string | null
+          created_at?: string
+          id?: string
+          ifsc?: string | null
+          technician_id: string
+          updated_at?: string
+          upi_id?: string | null
+        }
+        Update: {
+          account_holder_name?: string | null
+          account_number?: string | null
+          created_at?: string
+          id?: string
+          ifsc?: string | null
+          technician_id?: string
+          updated_at?: string
+          upi_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technician_payment_details_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: true
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      technician_qualifications: {
+        Row: {
+          certificate_url: string | null
+          created_at: string
+          id: string
+          institute: string | null
+          qualification: string
+          technician_id: string
+          updated_at: string
+          year: number | null
+        }
+        Insert: {
+          certificate_url?: string | null
+          created_at?: string
+          id?: string
+          institute?: string | null
+          qualification: string
+          technician_id: string
+          updated_at?: string
+          year?: number | null
+        }
+        Update: {
+          certificate_url?: string | null
+          created_at?: string
+          id?: string
+          institute?: string | null
+          qualification?: string
+          technician_id?: string
+          updated_at?: string
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technician_qualifications_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       technician_service_areas: {
         Row: {
           city: string
+          district: string | null
           id: string
+          locality: string | null
+          pan_india: boolean
+          pincode: string | null
+          radius_km: number | null
           state: string
           technician_id: string
         }
         Insert: {
           city: string
+          district?: string | null
           id?: string
+          locality?: string | null
+          pan_india?: boolean
+          pincode?: string | null
+          radius_km?: number | null
           state: string
           technician_id: string
         }
         Update: {
           city?: string
+          district?: string | null
           id?: string
+          locality?: string | null
+          pan_india?: boolean
+          pincode?: string | null
+          radius_km?: number | null
           state?: string
           technician_id?: string
         }
@@ -480,86 +836,137 @@ export type Database = {
         Row: {
           aadhaar_url: string | null
           address: string | null
+          availability: Json
           avg_rating: number | null
+          business: Json
           business_name: string | null
           city: string | null
+          completion_percent: number
           contact_email: string | null
           contact_phone: string | null
           created_at: string
+          description: string | null
+          display_name: string | null
           district: string | null
+          experience_months: number
           experience_years: number | null
           gst_number: string | null
+          headline: string | null
           id: string
           is_approved: boolean | null
           is_available: boolean | null
           lat: number | null
           lng: number | null
+          onboarding_status: string
           pan_url: string | null
           pincode: string | null
+          pricing: Json
           profile_id: string
           profile_photo_url: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          segments: string[]
+          service_modes: string[]
           service_radius_km: number | null
           shop_photo_url: string | null
           state: string | null
+          submitted_at: string | null
+          technician_type: string | null
           total_reviews: number | null
           updated_at: string
           visiting_card_url: string | null
+          whatsapp_number: string | null
+          workshop: Json
         }
         Insert: {
           aadhaar_url?: string | null
           address?: string | null
+          availability?: Json
           avg_rating?: number | null
+          business?: Json
           business_name?: string | null
           city?: string | null
+          completion_percent?: number
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
+          description?: string | null
+          display_name?: string | null
           district?: string | null
+          experience_months?: number
           experience_years?: number | null
           gst_number?: string | null
+          headline?: string | null
           id?: string
           is_approved?: boolean | null
           is_available?: boolean | null
           lat?: number | null
           lng?: number | null
+          onboarding_status?: string
           pan_url?: string | null
           pincode?: string | null
+          pricing?: Json
           profile_id: string
           profile_photo_url?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          segments?: string[]
+          service_modes?: string[]
           service_radius_km?: number | null
           shop_photo_url?: string | null
           state?: string | null
+          submitted_at?: string | null
+          technician_type?: string | null
           total_reviews?: number | null
           updated_at?: string
           visiting_card_url?: string | null
+          whatsapp_number?: string | null
+          workshop?: Json
         }
         Update: {
           aadhaar_url?: string | null
           address?: string | null
+          availability?: Json
           avg_rating?: number | null
+          business?: Json
           business_name?: string | null
           city?: string | null
+          completion_percent?: number
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
+          description?: string | null
+          display_name?: string | null
           district?: string | null
+          experience_months?: number
           experience_years?: number | null
           gst_number?: string | null
+          headline?: string | null
           id?: string
           is_approved?: boolean | null
           is_available?: boolean | null
           lat?: number | null
           lng?: number | null
+          onboarding_status?: string
           pan_url?: string | null
           pincode?: string | null
+          pricing?: Json
           profile_id?: string
           profile_photo_url?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          segments?: string[]
+          service_modes?: string[]
           service_radius_km?: number | null
           shop_photo_url?: string | null
           state?: string | null
+          submitted_at?: string | null
+          technician_type?: string | null
           total_reviews?: number | null
           updated_at?: string
           visiting_card_url?: string | null
+          whatsapp_number?: string | null
+          workshop?: Json
         }
         Relationships: [
           {
