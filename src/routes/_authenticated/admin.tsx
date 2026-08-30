@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { queryOptions, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
@@ -64,9 +64,38 @@ const STATUS_FILTERS = [
 ] as const;
 
 function AdminPage() {
-  const { data: applications } = useSuspenseQuery(applicationsQueryOptions());
+  const { data, isLoading, error } = useQuery(applicationsQueryOptions());
+  const applications = data ?? [];
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<string>("all");
+
+  const isForbidden = !!error && /admin access required/i.test(String((error as Error).message ?? ""));
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center px-4 py-20">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (isForbidden) {
+    return (
+      <div className="px-4 py-20 text-center">
+        <h1 className="text-2xl font-bold">Admin access required</h1>
+        <p className="mt-2 text-muted-foreground">This page is only available to platform admins.</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="px-4 py-20 text-center">
+        <h1 className="text-2xl font-bold">Couldn't load applications</h1>
+        <p className="mt-2 text-muted-foreground">{(error as Error).message}</p>
+      </div>
+    );
+  }
 
   const filtered = useMemo(
     () => (filter === "all" ? applications : applications.filter((a: any) => a.onboarding_status === filter)),
