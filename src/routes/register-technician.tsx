@@ -130,7 +130,10 @@ function RegisterTechnicianPage() {
   });
 
   const [step, setStep] = useState(1);
+  const [equipmentTab, setEquipmentTab] = useState<string | null>(null);
+  const [brandTab, setBrandTab] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
+
   const [hydrated, setHydrated] = useState(false);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
