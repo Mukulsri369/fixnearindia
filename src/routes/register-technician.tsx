@@ -219,9 +219,14 @@ function RegisterTechnicianPage() {
     setSubmitting(true);
     try {
       await doSave({ data: { currentStep: 16, completionPercent: completion, data: payload } });
-      await doSubmit({ data: { data: payload } });
-      toast.success("Application submitted — our team will review it shortly.");
+      const res: any = await doSubmit({ data: { data: payload } });
+      toast.success(
+        res?.alreadySubmitted
+          ? "Your application is already submitted and under review."
+          : "Application submitted — our team will review it shortly.",
+      );
       navigate({ to: "/dashboard" });
+
     } catch (err: any) {
       toast.error(err.message || "Could not submit application");
     } finally {
