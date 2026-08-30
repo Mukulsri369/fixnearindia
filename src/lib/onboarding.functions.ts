@@ -471,7 +471,15 @@ async function assertAdmin(context: any) {
 export const getOnboardingApplications = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context);
+    const { data: adminRole, error: roleError } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (roleError) throw new Error(`Failed to verify admin access: ${roleError.message}`);
+    if (!adminRole) return { authorized: false as const, applications: [] };
+
     const { data, error } = await context.supabase
       .from("technicians")
       .select(
@@ -488,7 +496,7 @@ export const getOnboardingApplications = createServerFn({ method: "GET" })
       )
       .order("created_at", { ascending: false });
     if (error) throw new Error(`Failed to load applications: ${error.message}`);
-    return data ?? [];
+    return { authorized: true as const, applications: data ?? [] };
   });
 
 export const setOnboardingStatus = createServerFn({ method: "POST" })
