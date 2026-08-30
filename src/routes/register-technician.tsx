@@ -20,7 +20,6 @@ import { ChipPicker } from "@/components/onboarding/ChipPicker";
 
 import { INDIA_STATES, citiesForState } from "@/lib/india-locations";
 import {
-  ALL_BRANDS,
   ALL_SKILLS,
   AVAILABILITY_OPTIONS,
   BUSINESS_TYPES,
@@ -319,8 +318,8 @@ function RegisterTechnicianPage() {
   const activeEquipmentCategory =
     equipmentOptions.find(({ segment, category }) => `${segment.id}||${category.name}` === activeEquipmentTab) ?? null;
 
-  const selectedEquipmentCategories = Array.from(
-    new Set((draft.equipment ?? []).map((p: EquipmentPick) => p.category)),
+  const selectedEquipmentCategories: string[] = Array.from(
+    new Set((draft.equipment ?? []).map((p: EquipmentPick) => String(p.category))),
   );
   const brandGroups = brandsForCategories(selectedEquipmentCategories);
   const activeBrandTab =
