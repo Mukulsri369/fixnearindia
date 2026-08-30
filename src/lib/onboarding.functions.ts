@@ -229,8 +229,10 @@ export const submitOnboarding = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (existingTechnician && !["draft", "profile_incomplete", "verification_required", "rejected"].includes(String(existingTechnician.onboarding_status))) {
-      throw new Error("Your technician application has already been submitted.");
+      // Already submitted (e.g. duplicate submit / retry) — treat as success.
+      return { ok: true, alreadySubmitted: true, technicianId: existingTechnician.id };
     }
+
 
     const { data: others } = await supabaseAdmin
       .from("technicians")
@@ -449,7 +451,7 @@ export const submitOnboarding = createServerFn({ method: "POST" })
         .eq("id", draftRow.id);
     }
 
-    return { technicianId };
+    return { ok: true, alreadySubmitted: false, technicianId };
   });
 
 /* ------------------------------------------------------------------ */
