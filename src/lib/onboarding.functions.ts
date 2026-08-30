@@ -451,7 +451,7 @@ export const submitOnboarding = createServerFn({ method: "POST" })
         .eq("id", draftRow.id);
     }
 
-    return { technicianId };
+    return { ok: true, alreadySubmitted: false, technicianId };
   });
 
 /* ------------------------------------------------------------------ */
