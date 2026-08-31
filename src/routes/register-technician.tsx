@@ -193,17 +193,154 @@ function RegisterTechnicianPage() {
     }
   };
 
+  const validateStep = (target: number): string[] => {
+    const errs: string[] = [];
+    const digits = (v: any) => String(v ?? "").replace(/\D/g, "");
+
+    switch (target) {
+      case 1: {
+        if (String(draft.fullName ?? "").trim().length < 2) errs.push("Enter your full name (at least 2 characters).");
+        if (digits(draft.phone).length !== 10) errs.push("Enter a valid 10-digit phone number.");
+        if (draft.whatsappNumber && digits(draft.whatsappNumber).length !== 10)
+          errs.push("WhatsApp number must be 10 digits.");
+        if (!draft.technicianType) errs.push("Select your technician type.");
+        break;
+      }
+      case 2: {
+        if (String(draft.displayName ?? "").trim().length < 3) errs.push("Add a public display name (min 3 characters).");
+        const years = Number(draft.experienceYears);
+        if (draft.experienceYears === "" || Number.isNaN(years) || years < 0 || years > 60)
+          errs.push("Total experience must be between 0 and 60 years.");
+        const months = draft.experienceMonths === "" || draft.experienceMonths === undefined ? 0 : Number(draft.experienceMonths);
+        if (Number.isNaN(months) || months < 0 || months > 11) errs.push("Additional months must be between 0 and 11.");
+        if (String(draft.headline ?? "").trim().length < 10) errs.push("Write a headline of at least 10 characters.");
+        if (!draft.skillLevel) errs.push("Select your overall skill level.");
+        break;
+      }
+      case 3:
+        if ((draft.segments ?? []).length === 0) errs.push("Select at least one service segment.");
+        break;
+      case 4:
+        if ((draft.equipment ?? []).length === 0) errs.push("Select at least one equipment you can repair.");
+        if ((draft.skills ?? []).length === 0) errs.push("Select at least one technical skill.");
+        break;
+      case 5:
+        if ((draft.brands ?? []).length === 0) errs.push("Select at least one brand you can service.");
+        break;
+      case 6:
+        if ((draft.services ?? []).length === 0) errs.push("Select at least one service you offer.");
+        break;
+      case 7:
+        (draft.qualifications ?? []).forEach((q: any, i: number) => {
+          if (!q?.qualification) errs.push(`Qualification ${i + 1}: select a qualification.`);
+          if (q?.year && (Number(q.year) < 1950 || Number(q.year) > new Date().getFullYear()))
+            errs.push(`Qualification ${i + 1}: enter a valid year.`);
+        });
+        break;
+      case 8:
+        (draft.certifications ?? []).forEach((c: any, i: number) => {
+          if (!String(c?.name ?? "").trim()) errs.push(`Certification ${i + 1}: add the certification name.`);
+          if (!String(c?.issuingOrganization ?? "").trim())
+            errs.push(`Certification ${i + 1}: add the issuing organization.`);
+          if (c?.issueDate && c?.expiryDate && c.expiryDate < c.issueDate)
+            errs.push(`Certification ${i + 1}: expiry date cannot be before the issue date.`);
+        });
+        break;
+      case 9: {
+        const areas = draft.serviceAreas ?? [];
+        if (areas.length === 0) errs.push("Add at least one service area.");
+        areas.forEach((a: any, i: number) => {
+          if (!a?.state) errs.push(`Service area ${i + 1}: select a state.`);
+          if (!a?.city) errs.push(`Service area ${i + 1}: select a city.`);
+          if (digits(a?.pincode).length !== 6) errs.push(`Service area ${i + 1}: enter a valid 6-digit pincode.`);
+        });
+        break;
+      }
+      case 10:
+        if ((draft.serviceModes ?? []).length === 0) errs.push("Select at least one service mode.");
+        break;
+      case 11: {
+        if ((draft.availability?.days ?? []).length === 0) errs.push("Select your working days.");
+        const from = draft.availability?.from;
+        const to = draft.availability?.to;
+        if (!from || !to) errs.push("Set both your available from and until times.");
+        else if (from >= to) errs.push("Available until must be later than available from.");
+        if (!draft.availability?.leadTime) errs.push("Select your typical response time.");
+        break;
+      }
+      case 12: {
+        if (!draft.pricing?.model) errs.push("Select a pricing model.");
+        const nums: [string, any][] = [
+          ["Visit charge", draft.pricing?.visitCharge],
+          ["Hourly rate", draft.pricing?.hourlyRate],
+          ["Minimum charge", draft.pricing?.minCharge],
+        ];
+        nums.forEach(([label, value]) => {
+          if (value !== "" && value !== undefined && value !== null && (Number.isNaN(Number(value)) || Number(value) < 0))
+            errs.push(`${label} must be a positive amount.`);
+        });
+        if (!draft.pricing?.visitCharge && !draft.pricing?.hourlyRate && !draft.pricing?.minCharge)
+          errs.push("Add at least one charge (visit, hourly or minimum).");
+        break;
+      }
+      case 13: {
+        if (!draft.business?.businessType) errs.push("Select your business type.");
+        if (draft.workshop?.hasWorkshop && String(draft.workshop?.address ?? "").trim().length < 10)
+          errs.push("Add your workshop address (at least 10 characters).");
+        const gst = String(draft.business?.gstNumber ?? "").trim();
+        if (gst && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[0-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$/.test(gst))
+          errs.push("GST number format looks invalid.");
+        break;
+      }
+      case 14: {
+        const docs = draft.documents ?? [];
+        if (docs.length === 0) errs.push("Add at least one verification document.");
+        docs.forEach((d: any, i: number) => {
+          if (!d?.documentType) errs.push(`Document ${i + 1}: select the document type.`);
+          if (!d?.filePath) errs.push(`Document ${i + 1}: upload the file (or remove the row).`);
+        });
+        break;
+      }
+      case 15: {
+        const upi = String(draft.payment?.upiId ?? "").trim();
+        const account = digits(draft.payment?.accountNumber);
+        const ifsc = String(draft.payment?.ifsc ?? "").trim();
+        if (!upi && !account) errs.push("Provide either a UPI ID or a bank account number.");
+        if (upi && !/^[\w.\-]{2,}@[a-zA-Z]{2,}$/.test(upi)) errs.push("Enter a valid UPI ID (e.g. name@bank).");
+        if (account) {
+          if (account.length < 9 || account.length > 18) errs.push("Account number must be 9–18 digits.");
+          if (!String(draft.payment?.accountHolderName ?? "").trim())
+            errs.push("Add the account holder name.");
+          if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc)) errs.push("Enter a valid IFSC code (e.g. HDFC0001234).");
+        }
+        break;
+      }
+      default:
+        break;
+    }
+    return errs;
+  };
+
   const goNext = async () => {
+    const errs = validateStep(step);
+    if (errs.length > 0) {
+      setStepErrors(errs);
+      toast.error(errs[0]!);
+      return;
+    }
+    setStepErrors([]);
     const next = Math.min(step + 1, 16);
     setStep(next);
     await persist(next);
   };
 
   const goBack = async () => {
+    setStepErrors([]);
     const prev = Math.max(step - 1, 1);
     setStep(prev);
     await persist(prev);
   };
+
 
   const handleUpload = async (file: File, kind: string) => {
     const base64 = await fileToBase64(file);
