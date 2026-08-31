@@ -25,6 +25,12 @@ const roleQueryOptions = () =>
     queryFn: () => getCurrentUserRole(),
   });
 
+const myRequestsQueryOptions = () =>
+  queryOptions({
+    queryKey: ["my-repair-requests"],
+    queryFn: () => getMyRepairRequests(),
+  });
+
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
