@@ -182,16 +182,12 @@ function DashboardPage() {
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {!isTechnicianApproved ? (
-                    <Link to="/new-request">
-                      <Button className="w-full">Book a Repair</Button>
-                    </Link>
-                  ) : null}
-                  {!isTechnicianApproved ? (
-                    <Link to="/requests">
-                      <Button variant="outline" className="w-full">My Requests</Button>
-                    </Link>
-                  ) : null}
+                  <Link to="/new-request">
+                    <Button className="w-full">Book a Repair</Button>
+                  </Link>
+                  <Link to="/requests">
+                    <Button variant="outline" className="w-full">My Requests</Button>
+                  </Link>
                   {!isTechnicianApproved && !hasTechnicianApplication ? (
                     <Link to="/register-technician">
                       <Button variant="outline" className="w-full">Become a Technician</Button>
