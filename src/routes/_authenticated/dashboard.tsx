@@ -137,7 +137,42 @@ function DashboardPage() {
                   <CardTitle>Recent Activity</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">No recent activity yet.</p>
+                  {myRequests.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      You haven't created any repair requests yet.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {myRequests.slice(0, 3).map((request) => (
+                        <Link
+                          key={request.id}
+                          to="/request/$id"
+                          params={{ id: request.id }}
+                          className="flex items-center justify-between gap-4 rounded-lg border px-4 py-3 transition-colors hover:border-primary/40"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium">
+                              {[request.brand, request.model].filter(Boolean).join(" ") ||
+                                request.categories?.name ||
+                                "Repair request"}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {request.categories?.name ? `${request.categories.name} • ` : ""}
+                              {new Date(request.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <Badge variant="secondary" className="capitalize">
+                            {request.status ?? "open"}
+                          </Badge>
+                        </Link>
+                      ))}
+                      <Link to="/requests" className="inline-block">
+                        <Button variant="link" className="h-auto p-0 text-sm">
+                          View all requests
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
