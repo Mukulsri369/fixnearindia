@@ -41,6 +41,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(profileQueryOptions());
     context.queryClient.ensureQueryData(roleQueryOptions());
+    context.queryClient.ensureQueryData(myRequestsQueryOptions());
   },
   component: DashboardPage,
 });
@@ -48,6 +49,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function DashboardPage() {
   const { data: profile } = useSuspenseQuery(profileQueryOptions());
   const { data: roleData } = useSuspenseQuery(roleQueryOptions());
+  const { data: myRequests } = useSuspenseQuery(myRequestsQueryOptions());
   const role = roleData?.role ?? "customer";
   const isTechnician = (roleData as any)?.isTechnician ?? role === "technician";
   const isAdmin = (roleData as any)?.isAdmin ?? false;
