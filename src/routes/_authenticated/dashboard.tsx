@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUserProfile, getCurrentUserRole, signOut } from "@/lib/auth.functions";
+import { getMyRepairRequests } from "@/lib/repairs.functions";
+import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 
 const profileQueryOptions = () =>
