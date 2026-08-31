@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUserProfile, getCurrentUserRole, signOut } from "@/lib/auth.functions";
+import { getMyRepairRequests } from "@/lib/repairs.functions";
+import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 
 const profileQueryOptions = () =>
@@ -23,6 +25,12 @@ const roleQueryOptions = () =>
     queryFn: () => getCurrentUserRole(),
   });
 
+const myRequestsQueryOptions = () =>
+  queryOptions({
+    queryKey: ["my-repair-requests"],
+    queryFn: () => getMyRepairRequests(),
+  });
+
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
@@ -33,6 +41,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(profileQueryOptions());
     context.queryClient.ensureQueryData(roleQueryOptions());
+    context.queryClient.ensureQueryData(myRequestsQueryOptions());
   },
   component: DashboardPage,
 });
@@ -40,6 +49,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function DashboardPage() {
   const { data: profile } = useSuspenseQuery(profileQueryOptions());
   const { data: roleData } = useSuspenseQuery(roleQueryOptions());
+  const { data: myRequests } = useSuspenseQuery(myRequestsQueryOptions());
   const role = roleData?.role ?? "customer";
   const isTechnician = (roleData as any)?.isTechnician ?? role === "technician";
   const isAdmin = (roleData as any)?.isAdmin ?? false;
@@ -106,7 +116,7 @@ function DashboardPage() {
                 <Wrench className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">0</div>
+                <div className="text-2xl font-bold">{myRequests.length}</div>
               </CardContent>
             </Card>
             <Card>
@@ -127,7 +137,42 @@ function DashboardPage() {
                   <CardTitle>Recent Activity</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">No recent activity yet.</p>
+                  {myRequests.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      You haven't created any repair requests yet.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {myRequests.slice(0, 3).map((request) => (
+                        <Link
+                          key={request.id}
+                          to="/request/$id"
+                          params={{ id: request.id }}
+                          className="flex items-center justify-between gap-4 rounded-lg border px-4 py-3 transition-colors hover:border-primary/40"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium">
+                              {[request.brand, request.model].filter(Boolean).join(" ") ||
+                                request.categories?.name ||
+                                "Repair request"}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {request.categories?.name ? `${request.categories.name} • ` : ""}
+                              {new Date(request.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <Badge variant="secondary" className="capitalize">
+                            {request.status ?? "open"}
+                          </Badge>
+                        </Link>
+                      ))}
+                      <Link to="/requests" className="inline-block">
+                        <Button variant="link" className="h-auto p-0 text-sm">
+                          View all requests
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -137,16 +182,12 @@ function DashboardPage() {
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {!isTechnicianApproved ? (
-                    <Link to="/new-request">
-                      <Button className="w-full">Book a Repair</Button>
-                    </Link>
-                  ) : null}
-                  {!isTechnicianApproved ? (
-                    <Link to="/requests">
-                      <Button variant="outline" className="w-full">My Requests</Button>
-                    </Link>
-                  ) : null}
+                  <Link to="/new-request">
+                    <Button className="w-full">Book a Repair</Button>
+                  </Link>
+                  <Link to="/requests">
+                    <Button variant="outline" className="w-full">My Requests</Button>
+                  </Link>
                   {!isTechnicianApproved && !hasTechnicianApplication ? (
                     <Link to="/register-technician">
                       <Button variant="outline" className="w-full">Become a Technician</Button>
