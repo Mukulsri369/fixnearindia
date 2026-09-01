@@ -352,12 +352,23 @@ function RegisterTechnicianPage() {
   };
 
   const handleSubmitApplication = async () => {
+    for (let s = 1; s <= 15; s += 1) {
+      const errs = validateStep(s);
+      if (errs.length > 0) {
+        setStep(s);
+        setStepErrors(errs);
+        toast.error(`Step ${s}: ${errs[0]}`);
+        return;
+      }
+    }
+    setStepErrors([]);
     const readyDocs = (draft.documents ?? []).filter((d: any) => d?.filePath);
     if (readyDocs.length === 0) {
       toast.error("Add at least one document and wait for the upload to finish");
       setStep(14);
       return;
     }
+
     const payload = { ...draft, documents: readyDocs };
     setSubmitting(true);
     try {
