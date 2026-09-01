@@ -509,6 +509,17 @@ function RegisterTechnicianPage() {
               <CardTitle className="text-2xl">{ONBOARDING_STEPS[step - 1]}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              {stepErrors.length > 0 && (
+                <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm">
+                  <p className="font-medium text-destructive">Please fix the following before continuing</p>
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-destructive">
+                    {stepErrors.map((error) => (
+                      <li key={error}>{error}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {step === 1 && (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label="Full name">
