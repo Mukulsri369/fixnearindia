@@ -136,6 +136,8 @@ function RegisterTechnicianPage() {
   const [hydrated, setHydrated] = useState(false);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [stepErrors, setStepErrors] = useState<string[]>([]);
+
 
   useEffect(() => {
     if (!state || hydrated) return;
