@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { LanguageProvider } from "@/components/LanguageProvider";
 import { AuthProvider } from "@/hooks/use-auth";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -130,16 +131,17 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <LanguageProvider>
-        <AuthProvider>
-          <div className="flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1 pt-16">
-              <Outlet />
-            </main>
-            <Footer />
-          </div>
-          <Toaster />
-        </AuthProvider>
+          <AuthProvider>
+            <div className="flex min-h-screen flex-col">
+              <Header />
+              <main className="flex-1 pt-16">
+                <Outlet />
+              </main>
+              <Footer />
+            </div>
+            <Toaster />
+          </AuthProvider>
+        </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
