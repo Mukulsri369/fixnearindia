@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Menu, Wrench, User, LogOut } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { LanguageToggle } from "./LanguageToggle";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
@@ -65,6 +66,7 @@ export function Header() {
 
         <div className="flex items-center gap-2">
           {isAuthenticated ? <NotificationBell /> : null}
+          <LanguageToggle />
           <ThemeToggle />
           <div className="hidden items-center gap-2 md:flex">
             {isLoading ? null : isAuthenticated ? (
