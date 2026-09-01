@@ -136,6 +136,8 @@ function RegisterTechnicianPage() {
   const [hydrated, setHydrated] = useState(false);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [stepErrors, setStepErrors] = useState<string[]>([]);
+
 
   useEffect(() => {
     if (!state || hydrated) return;
@@ -350,12 +352,23 @@ function RegisterTechnicianPage() {
   };
 
   const handleSubmitApplication = async () => {
+    for (let s = 1; s <= 15; s += 1) {
+      const errs = validateStep(s);
+      if (errs.length > 0) {
+        setStep(s);
+        setStepErrors(errs);
+        toast.error(`Step ${s}: ${errs[0]}`);
+        return;
+      }
+    }
+    setStepErrors([]);
     const readyDocs = (draft.documents ?? []).filter((d: any) => d?.filePath);
     if (readyDocs.length === 0) {
       toast.error("Add at least one document and wait for the upload to finish");
       setStep(14);
       return;
     }
+
     const payload = { ...draft, documents: readyDocs };
     setSubmitting(true);
     try {
@@ -496,6 +509,17 @@ function RegisterTechnicianPage() {
               <CardTitle className="text-2xl">{ONBOARDING_STEPS[step - 1]}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              {stepErrors.length > 0 && (
+                <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm">
+                  <p className="font-medium text-destructive">Please fix the following before continuing</p>
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-destructive">
+                    {stepErrors.map((error) => (
+                      <li key={error}>{error}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {step === 1 && (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label="Full name">
