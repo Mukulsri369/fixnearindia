@@ -85,7 +85,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         acceptNode(node) {
           const element = node.nodeType === Node.TEXT_NODE ? node.parentElement : (node as Element);
           if (!element) return NodeFilter.FILTER_REJECT;
-          if (SKIP_TAGS.has(element.tagName)) return NodEFILTER_REJECT_FALLBACK;
+          if (SKIP_TAGS.has(element.tagName)) return NodeFilter.FILTER_REJECT;
           if (element.hasAttribute?.("data-no-translate")) return NodeFilter.FILTER_REJECT;
           return NodeFilter.FILTER_ACCEPT;
         },
