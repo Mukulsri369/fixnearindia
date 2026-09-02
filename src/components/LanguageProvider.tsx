@@ -32,50 +32,7 @@ type Unit =
 function isTranslatable(value: string) {
   const text = value.trim();
   if (text.length < 2 || text.length > 600) return false;
-  if (!/[A-Za-z]{2}/.test(text)) return false;
-  return true;
-}
-
-function collectUnits(root: Node, seenText: WeakMap<Text, string>, seenAttr: WeakMap<Element, Set<string>>) {
-  const units: Unit[] = [];
-
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, {
-    acceptNode(node) {
-      const parent = node.nodeType === Node.TEXT_NODE ? node.parentElement : (node as Element);
-      if (!parent) return NodeFilter.FILTER_REJECT;
-      if (SKIP_TAGS.has(parent.tagName)) return NodeFilter.FILTER_REJECT;
-      if (parent.closest("[data-no-translate]")) return NodeFilter.FILTER_REJECT;
-      return NodeFilter.FILTER_ACCEPT;
-    },
-  });
-
-  const consider = (node: Node) => {
-    if (node.nodeType === Node.TEXT_NODE) {
-      const textNode = node as Text;
-      const value = textNode.nodeValue ?? "";
-      if (isTranslatable(value) && !seenText.has(textNode)) {
-        units.push({ kind: "text", node: textNode, original: value });
-      }
-      return;
-    }
-    const element = node as Element;
-    for (const attr of ATTRS) {
-      const value = element.getAttribute(attr);
-      if (!value || !isTranslatable(value)) continue;
-      const done = seenAttr.get(element);
-      if (done?.has(attr)) continue;
-      units.push({ kind: "attr", node: element, attr, original: value });
-    }
-  };
-
-  if (root.nodeType === Node.TEXT_NODE || root.nodeType === Node.ELEMENT_NODE) consider(root);
-  let current = walker.nextNode();
-  while (current) {
-    consider(current);
-    current = walker.nextNode();
-  }
-
-  return units;
+  return /[A-Za-z]{2}/.test(text);
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
@@ -83,25 +40,31 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [isTranslating, setIsTranslating] = useState(false);
 
   const cacheRef = useRef<Map<string, string>>(new Map());
-  const textOriginals = useRef(new WeakMap<Text, string>());
-  const attrOriginals = useRef(new WeakMap<Element, Map<string, string>>());
-  const doneText = useRef(new WeakMap<Text, string>());
-  const doneAttr = useRef(new WeakMap<Element, Set<string>>());
+  const translatedValues = useRef<Set<string>>(new Set());
   const languageRef = useRef<Language>("en");
   const runningRef = useRef(false);
   const pendingRef = useRef(false);
+  const failedRef = useRef<Set<string>>(new Set());
 
+  // Load stored preference + cached translations.
   useEffect(() => {
     try {
       const stored = localStorage.getItem(CACHE_KEY);
-      if (stored) cacheRef.current = new Map(Object.entries(JSON.parse(stored) as Record<string, string>));
+      if (stored) {
+        const parsed = JSON.parse(stored) as Record<string, string>;
+        cacheRef.current = new Map(Object.entries(parsed));
+        for (const value of cacheRef.current.values()) translatedValues.current.add(value.trim());
+      }
     } catch {
       /* ignore */
     }
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === "hi") {
-      languageRef.current = "hi";
-      setLanguageState("hi");
+    try {
+      if (localStorage.getItem(STORAGE_KEY) === "hi") {
+        languageRef.current = "hi";
+        setLanguageState("hi");
+      }
+    } catch {
+      /* ignore */
     }
   }, []);
 
@@ -113,24 +76,52 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const apply = useCallback((unit: Unit, translated: string) => {
-    if (unit.kind === "text") {
-      textOriginals.current.set(unit.node, unit.original);
-      unit.node.nodeValue = translated;
-      doneText.current.set(unit.node, translated);
-      return;
+  const collectUnits = useCallback(() => {
+    const units: Unit[] = [];
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+      {
+        acceptNode(node) {
+          const element = node.nodeType === Node.TEXT_NODE ? node.parentElement : (node as Element);
+          if (!element) return NodeFilter.FILTER_REJECT;
+          if (SKIP_TAGS.has(element.tagName)) return NodeFilter.FILTER_REJECT;
+          if (element.hasAttribute?.("data-no-translate")) return NodeFilter.FILTER_REJECT;
+          return NodeFilter.FILTER_ACCEPT;
+        },
+      },
+    );
+
+    let current: Node | null = walker.nextNode();
+    while (current) {
+      if (current.nodeType === Node.TEXT_NODE) {
+        const value = current.nodeValue ?? "";
+        const key = value.trim();
+        if (isTranslatable(value) && !translatedValues.current.has(key)) {
+          units.push({ kind: "text", node: current as Text, original: value });
+        }
+      } else {
+        const element = current as Element;
+        for (const attr of ATTRS) {
+          const value = element.getAttribute(attr);
+          if (!value || !isTranslatable(value)) continue;
+          if (translatedValues.current.has(value.trim())) continue;
+          units.push({ kind: "attr", node: element, attr, original: value });
+        }
+      }
+      current = walker.nextNode();
     }
-    const map = attrOriginals.current.get(unit.node) ?? new Map<string, string>();
-    map.set(unit.attr, unit.original);
-    attrOriginals.current.set(unit.node, map);
-    unit.node.setAttribute(unit.attr, translated);
-    const set = doneAttr.current.get(unit.node) ?? new Set<string>();
-    set.add(unit.attr);
-    doneAttr.current.set(unit.node, set);
+    return units;
+  }, []);
+
+  const apply = useCallback((unit: Unit, translated: string) => {
+    const next = unit.original.replace(unit.original.trim(), translated);
+    if (unit.kind === "text") unit.node.nodeValue = next;
+    else unit.node.setAttribute(unit.attr, next);
   }, []);
 
   const translateDocument = useCallback(async () => {
-    if (languageRef.current !== "hi") return;
+    if (languageRef.current !== "hi" || typeof document === "undefined") return;
     if (runningRef.current) {
       pendingRef.current = true;
       return;
@@ -138,43 +129,44 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     runningRef.current = true;
 
     try {
-      const units = collectUnits(document.body, doneText.current, doneAttr.current);
+      const units = collectUnits();
       if (units.length === 0) return;
 
       const missing: string[] = [];
       for (const unit of units) {
         const key = unit.original.trim();
         const cached = cacheRef.current.get(key);
-        if (cached) {
-          apply(unit, unit.original.replace(key, cached));
-        } else if (!missing.includes(key)) {
-          missing.push(key);
-        }
+        if (cached) apply(unit, cached);
+        else if (!failedRef.current.has(key) && !missing.includes(key)) missing.push(key);
       }
 
       if (missing.length === 0) return;
 
       setIsTranslating(true);
-      for (let i = 0; i < missing.length; i += 60) {
-        const batch = missing.slice(i, i + 60);
+      for (let i = 0; i < missing.length; i += 50) {
+        const batch = missing.slice(i, i + 50);
         try {
           const result = await translateTexts({ data: { texts: batch, target: "hi" } });
           batch.forEach((source, index) => {
             const value = result.translations[index];
-            if (value) cacheRef.current.set(source, value);
+            if (value && value !== source) {
+              cacheRef.current.set(source, value);
+              translatedValues.current.add(value.trim());
+            } else {
+              failedRef.current.add(source);
+            }
           });
         } catch (error) {
-          console.error("Hindi translation batch failed", error);
+          console.error("Hindi translation failed", error);
+          batch.forEach((source) => failedRef.current.add(source));
         }
       }
       persistCache();
 
       if (languageRef.current !== "hi") return;
-      const remaining = collectUnits(document.body, doneText.current, doneAttr.current);
-      for (const unit of remaining) {
-        const key = unit.original.trim();
-        const cached = cacheRef.current.get(key);
-        if (cached) apply(unit, unit.original.replace(key, cached));
+      for (const unit of collectUnits()) {
+        const cached = cacheRef.current.get(unit.original.trim());
+        if (cached) apply(unit, cached);
       }
     } finally {
       setIsTranslating(false);
@@ -184,7 +176,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         void translateDocument();
       }
     }
-  }, [apply, persistCache]);
+  }, [apply, collectUnits, persistCache]);
 
   const setLanguage = useCallback(
     (lang: Language) => {
@@ -201,13 +193,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     [translateDocument],
   );
 
+  // Keep the DOM translated as React re-renders / routes change.
   useEffect(() => {
     if (language !== "hi") return;
-    void translateDocument();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const schedule = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => void translateDocument(), 120);
+    };
 
-    const observer = new MutationObserver(() => {
-      void translateDocument();
-    });
+    schedule();
+    const observer = new MutationObserver(schedule);
     observer.observe(document.body, {
       childList: true,
       subtree: true,
@@ -215,7 +211,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       attributes: true,
       attributeFilter: [...ATTRS],
     });
-    return () => observer.disconnect();
+    const interval = setInterval(schedule, 2000);
+
+    return () => {
+      observer.disconnect();
+      clearInterval(interval);
+      if (timer) clearTimeout(timer);
+    };
   }, [language, translateDocument]);
 
   useEffect(() => {
