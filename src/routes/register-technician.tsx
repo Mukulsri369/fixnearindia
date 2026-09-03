@@ -770,9 +770,15 @@ function RegisterTechnicianPage() {
                   options={SERVICES}
                   selected={draft.services ?? []}
                   placeholder="Search services…"
+                  suggested={POPULAR_SERVICES}
+                  suggestedLabel="Most offered services"
+                  onSelectMany={(values) => addMany("services", values)}
+                  onClear={() => set({ services: [] })}
+                  onCustomAdd={(name) => requestCatalog("service", name)}
                   onToggle={(v) => toggleIn("services", v)}
                 />
               )}
+
 
               {step === 7 && (
                 <RowEditor
