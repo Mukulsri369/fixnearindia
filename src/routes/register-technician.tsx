@@ -601,12 +601,97 @@ function RegisterTechnicianPage() {
 
               {step === 4 && (
                 <div className="space-y-6">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Quick start — pick your trade</p>
+                    <p className="text-xs text-muted-foreground">
+                      One tap fills the usual equipment, skills and services. You can edit everything afterwards.
+                    </p>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {TRADE_PRESETS.map((preset) => (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => applyPreset(preset)}
+                          className="rounded-xl border border-border p-3 text-left transition-colors hover:border-primary hover:bg-primary/5"
+                        >
+                          <span className="flex items-center gap-1.5 text-sm font-medium">
+                            <Zap className="h-3.5 w-3.5 text-primary" /> {preset.label}
+                          </span>
+                          <span className="mt-0.5 block text-xs text-muted-foreground">{preset.description}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Search all equipment</p>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        value={catalogQuery}
+                        onChange={(e) => setCatalogQuery(e.target.value)}
+                        placeholder='Try "split ac", "washing machine", "ro", "pcb"…'
+                        className="pl-9"
+                      />
+                    </div>
+                    {catalogQuery.trim().length >= 2 && (
+                      <div className="max-h-80 space-y-3 overflow-y-auto rounded-xl border border-border p-3">
+                        {equipmentSearchGroups.length === 0 ? (
+                          <div className="space-y-2">
+                            <p className="text-sm text-muted-foreground">No equipment matches “{catalogQuery.trim()}”.</p>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                requestCatalog("equipment", catalogQuery.trim());
+                                setCatalogQuery("");
+                              }}
+                            >
+                              <Plus className="mr-1 h-3.5 w-3.5" /> Request “{catalogQuery.trim()}”
+                            </Button>
+                          </div>
+                        ) : (
+                          equipmentSearchGroups.map((group) => (
+                            <div key={`${group.segmentId}||${group.category}`} className="space-y-1.5">
+                              <p className="text-xs font-medium text-muted-foreground">
+                                {group.segmentLabel} • {group.category}
+                              </p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {group.items.map((item) => {
+                                  const active = isEquipmentSelected(item.segmentId, item.category, item.equipment);
+                                  return (
+                                    <button
+                                      key={item.key}
+                                      type="button"
+                                      onClick={() => toggleEquipment(item.segmentId, item.category, item.equipment)}
+                                      className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                                        active
+                                          ? "border-primary bg-primary text-primary-foreground"
+                                          : "border-border hover:bg-muted"
+                                      }`}
+                                    >
+                                      {active ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+                                      {item.equipment}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   {equipmentOptions.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Select a service segment first.</p>
+                    <p className="text-sm text-muted-foreground">
+                      Or select a service segment in the previous step to browse by category.
+                    </p>
                   ) : (
                     <>
                       <div className="space-y-2">
-                        <p className="text-sm font-medium">Choose a category to see its equipment</p>
+                        <p className="text-sm font-medium">Or browse by category</p>
                         <div className="flex flex-wrap gap-1.5">
                           {equipmentOptions.map(({ segment, category }) => {
                             const key = `${segment.id}||${category.name}`;
@@ -656,29 +741,22 @@ function RegisterTechnicianPage() {
                               )
                               .map((p: EquipmentPick) => p.equipment)}
                             placeholder={`Search ${activeEquipmentCategory.category.name} equipment…`}
+                            onSelectMany={(values) =>
+                              values.forEach((value) =>
+                                addEquipment(
+                                  activeEquipmentCategory.segment.id,
+                                  activeEquipmentCategory.category.name,
+                                  value,
+                                ),
+                              )
+                            }
+                            onCustomAdd={(name) => requestCatalog("equipment", name)}
                             onToggle={(equipment) =>
-                              setDraft((prev) => {
-                                const segmentId = activeEquipmentCategory.segment.id;
-                                const categoryName = activeEquipmentCategory.category.name;
-                                const list: EquipmentPick[] = prev.equipment ?? [];
-                                const exists = list.some(
-                                  (p) =>
-                                    p.segment === segmentId && p.category === categoryName && p.equipment === equipment,
-                                );
-                                return {
-                                  ...prev,
-                                  equipment: exists
-                                    ? list.filter(
-                                        (p) =>
-                                          !(
-                                            p.segment === segmentId &&
-                                            p.category === categoryName &&
-                                            p.equipment === equipment
-                                          ),
-                                      )
-                                    : [...list, { segment: segmentId, category: categoryName, equipment }],
-                                };
-                              })
+                              toggleEquipment(
+                                activeEquipmentCategory.segment.id,
+                                activeEquipmentCategory.category.name,
+                                equipment,
+                              )
                             }
                           />
                         </div>
@@ -692,6 +770,11 @@ function RegisterTechnicianPage() {
                       options={ALL_SKILLS}
                       selected={draft.skills ?? []}
                       placeholder="Search skills…"
+                      suggested={suggestedSkills}
+                      suggestedLabel="Suggested for your equipment"
+                      onSelectMany={(values) => addMany("skills", values)}
+                      onClear={() => set({ skills: [] })}
+                      onCustomAdd={(name) => requestCatalog("skill", name)}
                       onToggle={(v) => toggleIn("skills", v)}
                     />
                   </div>
@@ -699,6 +782,7 @@ function RegisterTechnicianPage() {
                   <MissingItem kind="equipment" onSubmit={doCatalogRequest} />
                 </div>
               )}
+
 
               {step === 5 && (
                 <div className="space-y-5">
