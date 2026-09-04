@@ -97,13 +97,20 @@ export type EquipmentSearchGroup = {
  * Search equipment across every segment/category, grouped by
  * "Segment - Category" and ranked by best match inside each group.
  */
-export function searchEquipment(query: string, limit = 80): EquipmentSearchGroup[] {
+export function searchEquipment(
+  query: string,
+  limit = 80,
+  allowedSegments?: string[],
+): EquipmentSearchGroup[] {
   const q = query.trim();
   if (q.length < 2) return [];
 
   const segmentOrder = new Map(SEGMENTS.map((s, i) => [s.id, i]));
+  const allowed = allowedSegments && allowedSegments.length > 0 ? new Set(allowedSegments) : null;
+  const pool = allowed ? EQUIPMENT_INDEX.filter((e) => allowed.has(e.segmentId)) : EQUIPMENT_INDEX;
 
-  const scored = EQUIPMENT_INDEX.map((entry) => {
+  const scored = pool.map((entry) => {
+
     const raw = matchScore(entry.equipment, q, `${entry.category} ${entry.segmentLabel}`);
     return {
       entry,
