@@ -497,14 +497,15 @@ function RegisterTechnicianPage() {
       const segments: string[] = prev.segments ?? [];
       const active = segments.includes(segmentId);
       if (!active) return { ...prev, segments: [...segments, segmentId] };
-      const nextEquipment = (prev.equipment ?? []).filter((p: EquipmentPick) => p.segment !== segmentId);
-      const removed = (prev.equipment ?? []).length - nextEquipment.length;
+      const nextEquipment: EquipmentPick[] = ((prev.equipment ?? []) as EquipmentPick[]).filter(
+        (p) => p.segment !== segmentId,
+      );
+      const removed = ((prev.equipment ?? []) as EquipmentPick[]).length - nextEquipment.length;
       if (removed > 0) {
         toast.info(`Removed ${removed} equipment item${removed > 1 ? "s" : ""} from that segment.`);
       }
-      const remainingCategories: string[] = Array.from(
-        new Set(nextEquipment.map((p: EquipmentPick) => String(p.category))),
-      );
+      const remainingCategories: string[] = Array.from(new Set(nextEquipment.map((p) => String(p.category))));
+
 
       const allowedBrands = new Set(brandsForCategories(remainingCategories).flatMap((g) => g.brands));
       return {
