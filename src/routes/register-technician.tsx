@@ -502,7 +502,10 @@ function RegisterTechnicianPage() {
       if (removed > 0) {
         toast.info(`Removed ${removed} equipment item${removed > 1 ? "s" : ""} from that segment.`);
       }
-      const remainingCategories = Array.from(new Set(nextEquipment.map((p: EquipmentPick) => String(p.category))));
+      const remainingCategories: string[] = Array.from(
+        new Set(nextEquipment.map((p: EquipmentPick) => String(p.category))),
+      );
+
       const allowedBrands = new Set(brandsForCategories(remainingCategories).flatMap((g) => g.brands));
       return {
         ...prev,
