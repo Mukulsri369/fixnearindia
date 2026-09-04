@@ -105,7 +105,16 @@ const emptyDraft: Draft = {
   payment: { accountHolderName: "", accountNumber: "", ifsc: "", upiId: "" },
 };
 
+const SEGMENT_DESCRIPTIONS: Record<string, string> = {
+  home: "Everyday household work — ACs, fridges, washing machines, kitchen appliances, RO/water purifiers, geysers, inverters, TVs, computers, CCTV, smart home, lighting and fitness machines.",
+  commercial:
+    "Shops, offices, hotels and restaurants — commercial refrigeration and kitchens, laundry machines, office IT and printers, UPS/generators, central AC and VRF, security systems and building equipment like lifts.",
+  industrial:
+    "Factories and plants — production machinery, motors and drives, panels and automation, compressors, pumps, boilers, material handling, testing instruments and heavy electricals.",
+};
+
 function fileToBase64(file: File) {
+
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));
