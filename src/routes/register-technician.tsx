@@ -481,7 +481,25 @@ function RegisterTechnicianPage() {
       : (brandGroups[0]?.category ?? null);
   const activeBrandGroup = brandGroups.find((g) => g.category === activeBrandTab) ?? null;
 
-  const equipmentSearchGroups = searchEquipment(catalogQuery);
+  const equipmentSearchGroups = searchEquipment(catalogQuery, 80, draft.segments ?? []);
+
+  const toggleSegment = (segmentId: string) =>
+    setDraft((prev) => {
+      const segments: string[] = prev.segments ?? [];
+      const active = segments.includes(segmentId);
+      if (!active) return { ...prev, segments: [...segments, segmentId] };
+      const nextEquipment = (prev.equipment ?? []).filter((p: EquipmentPick) => p.segment !== segmentId);
+      const removed = (prev.equipment ?? []).length - nextEquipment.length;
+      if (removed > 0) {
+        toast.info(`Removed ${removed} equipment item${removed > 1 ? "s" : ""} from that segment.`);
+      }
+      return {
+        ...prev,
+        segments: segments.filter((s) => s !== segmentId),
+        equipment: nextEquipment,
+      };
+    });
+
   const suggestedSkills = suggestedSkillsForCategories(selectedEquipmentCategories);
 
   const isEquipmentSelected = (segment: string, category: string, equipment: string) =>
