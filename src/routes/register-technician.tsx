@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Check, Loader2, Plus, Trash2, Wrench } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2, Plus, Search, Trash2, Wrench, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -40,6 +40,8 @@ import {
   categoriesForSegments,
 } from "@/lib/technician-catalog";
 import { brandsForCategories } from "@/lib/equipment-brands";
+import { searchEquipment } from "@/lib/catalog-search";
+import { POPULAR_SERVICES, TRADE_PRESETS, suggestedSkillsForCategories, type TradePreset } from "@/lib/trade-presets";
 
 import {
   createCatalogRequest,
@@ -131,6 +133,7 @@ function RegisterTechnicianPage() {
   const [step, setStep] = useState(1);
   const [equipmentTab, setEquipmentTab] = useState<string | null>(null);
   const [brandTab, setBrandTab] = useState<string | null>(null);
+  const [catalogQuery, setCatalogQuery] = useState("");
   const [draft, setDraft] = useState<Draft>(emptyDraft);
 
   const [hydrated, setHydrated] = useState(false);
@@ -477,6 +480,67 @@ function RegisterTechnicianPage() {
       ? brandTab
       : (brandGroups[0]?.category ?? null);
   const activeBrandGroup = brandGroups.find((g) => g.category === activeBrandTab) ?? null;
+
+  const equipmentSearchGroups = searchEquipment(catalogQuery);
+  const suggestedSkills = suggestedSkillsForCategories(selectedEquipmentCategories);
+
+  const isEquipmentSelected = (segment: string, category: string, equipment: string) =>
+    (draft.equipment ?? []).some(
+      (p: EquipmentPick) => p.segment === segment && p.category === category && p.equipment === equipment,
+    );
+
+  const toggleEquipment = (segment: string, category: string, equipment: string) =>
+    setDraft((prev) => {
+      const list: EquipmentPick[] = prev.equipment ?? [];
+      const exists = list.some((p) => p.segment === segment && p.category === category && p.equipment === equipment);
+      const segments: string[] = prev.segments ?? [];
+      return {
+        ...prev,
+        segments: exists || segments.includes(segment) ? segments : [...segments, segment],
+        equipment: exists
+          ? list.filter((p) => !(p.segment === segment && p.category === category && p.equipment === equipment))
+          : [...list, { segment, category, equipment }],
+      };
+    });
+
+  const addEquipment = (segment: string, category: string, equipment: string) => {
+    if (!isEquipmentSelected(segment, category, equipment)) toggleEquipment(segment, category, equipment);
+  };
+
+  const addMany = (key: string, values: string[]) =>
+    setDraft((prev) => ({ ...prev, [key]: Array.from(new Set([...(prev[key] ?? []), ...values])) }));
+
+  const applyPreset = (preset: TradePreset) => {
+    setDraft((prev) => {
+      const existing: EquipmentPick[] = prev.equipment ?? [];
+      const keyOf = (p: EquipmentPick) => `${p.segment}||${p.category}||${p.equipment}`;
+      const seen = new Set(existing.map(keyOf));
+      const merged = [...existing];
+      for (const pick of preset.equipment) {
+        if (!seen.has(keyOf(pick))) {
+          seen.add(keyOf(pick));
+          merged.push(pick);
+        }
+      }
+      return {
+        ...prev,
+        segments: Array.from(new Set([...(prev.segments ?? []), ...preset.segments])),
+        equipment: merged,
+        skills: Array.from(new Set([...(prev.skills ?? []), ...preset.skills])),
+        services: Array.from(new Set([...(prev.services ?? []), ...preset.services])),
+      };
+    });
+    toast.success(`${preset.label} selections added — remove anything you don't handle.`);
+  };
+
+  const requestCatalog = async (kind: "equipment" | "skill" | "service" | "brand", name: string) => {
+    try {
+      await doCatalogRequest({ data: { kind, name } });
+      toast.success("Request sent to our catalog team");
+    } catch (err: any) {
+      toast.error(err.message || "Could not send request");
+    }
+  };
 
 
   return (

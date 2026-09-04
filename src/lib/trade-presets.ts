@@ -252,7 +252,8 @@ export const TRADE_PRESETS: TradePreset[] = RAW_PRESETS.map((preset) => {
     }
   }
 
-  const skills = Array.from(new Set(preset.skillGroups.flatMap((name) => skillGroupIndex.get(name) ?? [])));
+  // Keep the pre-selection tight — the technician can add more from the full list.
+  const skills = Array.from(new Set(preset.skillGroups.flatMap((name) => (skillGroupIndex.get(name) ?? []).slice(0, 8))));
   const services = preset.services.filter((s) => serviceSet.has(s));
 
   return { ...preset, equipment, skills, services };
