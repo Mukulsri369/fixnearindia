@@ -103,7 +103,10 @@ export function searchEquipment(query: string, limit = 80): EquipmentSearchGroup
 
   const scored = EQUIPMENT_INDEX.map((entry) => ({
     entry,
-    score: matchScore(entry.equipment, q, `${entry.category} ${entry.segmentLabel}`),
+    // Slight preference for shorter, more canonical names ("Split AC" over
+    // "Commercial Split AC") when the raw match score ties.
+    score:
+      matchScore(entry.equipment, q, `${entry.category} ${entry.segmentLabel}`) - entry.equipment.length * 0.15,
   }))
     .filter((r) => r.score > 0)
     .sort((a, b) => b.score - a.score || a.entry.equipment.localeCompare(b.entry.equipment))
