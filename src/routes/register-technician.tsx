@@ -660,26 +660,40 @@ function RegisterTechnicianPage() {
 
               {step === 3 && (
                 <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">Pick every segment you work in. Equipment options depend on this.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Pick every segment you work in. You can only choose equipment from the segments you select here — if you
+                    remove a segment later, its equipment and brands are removed too.
+                  </p>
                   {SEGMENTS.map((segment) => {
                     const active = (draft.segments ?? []).includes(segment.id);
+                    const picked = (draft.equipment ?? []).filter((p: EquipmentPick) => p.segment === segment.id).length;
                     return (
                       <button
                         key={segment.id}
                         type="button"
-                        onClick={() => toggleIn("segments", segment.id)}
-                        className={`flex w-full items-center justify-between rounded-xl border p-4 text-left transition-colors ${
+                        onClick={() => toggleSegment(segment.id)}
+                        className={`flex w-full items-start justify-between gap-3 rounded-xl border p-4 text-left transition-colors ${
                           active ? "border-primary bg-primary/5" : "border-border hover:bg-muted"
                         }`}
                       >
-                        <span>
+                        <span className="min-w-0">
                           <span className="font-medium">{segment.label}</span>
                           <span className="mt-0.5 block text-xs text-muted-foreground">
-                            {segment.categories.length} categories
+                            {SEGMENT_DESCRIPTIONS[segment.id] ?? ""}
                           </span>
+                          <span className="mt-1.5 block text-xs text-muted-foreground">
+                            <span className="font-medium text-foreground/80">
+                              {segment.categories.length} categories:
+                            </span>{" "}
+                            {segment.categories.map((c) => c.name).join(" · ")}
+                          </span>
+                          {active && picked > 0 && (
+                            <span className="mt-1.5 block text-xs text-primary">{picked} equipment selected</span>
+                          )}
                         </span>
-                        {active && <Check className="h-4 w-4 text-primary" />}
+                        {active && <Check className="mt-1 h-4 w-4 shrink-0 text-primary" />}
                       </button>
+
                     );
                   })}
                 </div>
