@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Check, Loader2, Plus, Trash2, Wrench } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2, Plus, Search, Trash2, Wrench, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -40,6 +40,8 @@ import {
   categoriesForSegments,
 } from "@/lib/technician-catalog";
 import { brandsForCategories } from "@/lib/equipment-brands";
+import { searchEquipment } from "@/lib/catalog-search";
+import { POPULAR_SERVICES, TRADE_PRESETS, suggestedSkillsForCategories, type TradePreset } from "@/lib/trade-presets";
 
 import {
   createCatalogRequest,
@@ -131,6 +133,7 @@ function RegisterTechnicianPage() {
   const [step, setStep] = useState(1);
   const [equipmentTab, setEquipmentTab] = useState<string | null>(null);
   const [brandTab, setBrandTab] = useState<string | null>(null);
+  const [catalogQuery, setCatalogQuery] = useState("");
   const [draft, setDraft] = useState<Draft>(emptyDraft);
 
   const [hydrated, setHydrated] = useState(false);
