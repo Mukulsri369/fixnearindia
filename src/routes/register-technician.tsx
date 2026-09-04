@@ -478,6 +478,67 @@ function RegisterTechnicianPage() {
       : (brandGroups[0]?.category ?? null);
   const activeBrandGroup = brandGroups.find((g) => g.category === activeBrandTab) ?? null;
 
+  const equipmentSearchGroups = searchEquipment(catalogQuery);
+  const suggestedSkills = suggestedSkillsForCategories(selectedEquipmentCategories);
+
+  const isEquipmentSelected = (segment: string, category: string, equipment: string) =>
+    (draft.equipment ?? []).some(
+      (p: EquipmentPick) => p.segment === segment && p.category === category && p.equipment === equipment,
+    );
+
+  const toggleEquipment = (segment: string, category: string, equipment: string) =>
+    setDraft((prev) => {
+      const list: EquipmentPick[] = prev.equipment ?? [];
+      const exists = list.some((p) => p.segment === segment && p.category === category && p.equipment === equipment);
+      const segments: string[] = prev.segments ?? [];
+      return {
+        ...prev,
+        segments: exists || segments.includes(segment) ? segments : [...segments, segment],
+        equipment: exists
+          ? list.filter((p) => !(p.segment === segment && p.category === category && p.equipment === equipment))
+          : [...list, { segment, category, equipment }],
+      };
+    });
+
+  const addEquipment = (segment: string, category: string, equipment: string) => {
+    if (!isEquipmentSelected(segment, category, equipment)) toggleEquipment(segment, category, equipment);
+  };
+
+  const addMany = (key: string, values: string[]) =>
+    setDraft((prev) => ({ ...prev, [key]: Array.from(new Set([...(prev[key] ?? []), ...values])) }));
+
+  const applyPreset = (preset: TradePreset) => {
+    setDraft((prev) => {
+      const existing: EquipmentPick[] = prev.equipment ?? [];
+      const keyOf = (p: EquipmentPick) => `${p.segment}||${p.category}||${p.equipment}`;
+      const seen = new Set(existing.map(keyOf));
+      const merged = [...existing];
+      for (const pick of preset.equipment) {
+        if (!seen.has(keyOf(pick))) {
+          seen.add(keyOf(pick));
+          merged.push(pick);
+        }
+      }
+      return {
+        ...prev,
+        segments: Array.from(new Set([...(prev.segments ?? []), ...preset.segments])),
+        equipment: merged,
+        skills: Array.from(new Set([...(prev.skills ?? []), ...preset.skills])),
+        services: Array.from(new Set([...(prev.services ?? []), ...preset.services])),
+      };
+    });
+    toast.success(`${preset.label} selections added — remove anything you don't handle.`);
+  };
+
+  const requestCatalog = async (kind: "equipment" | "skill" | "service" | "brand", name: string) => {
+    try {
+      await doCatalogRequest({ data: { kind, name } });
+      toast.success("Request sent to our catalog team");
+    } catch (err: any) {
+      toast.error(err.message || "Could not send request");
+    }
+  };
+
 
   return (
     <div className="px-4 py-10 sm:px-6 lg:px-8">
