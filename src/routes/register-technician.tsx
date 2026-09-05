@@ -718,9 +718,10 @@ function RegisterTechnicianPage() {
                   <div className="space-y-2">
                     <p className="text-sm font-medium">Quick start — pick your trade</p>
                     <p className="text-xs text-muted-foreground">
-                      One tap fills the usual equipment, skills and services. You can edit everything afterwards.
+                      Suggestions below match the segments you picked. One tap fills the usual equipment, skills and
+                      services — you can edit everything afterwards.
                     </p>
-                    <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="grid max-h-80 gap-2 overflow-y-auto rounded-xl border border-border p-2 sm:grid-cols-2">
                       {tradePresets.map((preset) => (
                         <button
                           key={preset.id}
