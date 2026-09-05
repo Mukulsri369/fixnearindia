@@ -41,7 +41,7 @@ import {
 } from "@/lib/technician-catalog";
 import { brandsForCategories } from "@/lib/equipment-brands";
 import { searchEquipment } from "@/lib/catalog-search";
-import { POPULAR_SERVICES, TRADE_PRESETS, suggestedSkillsForCategories, type TradePreset } from "@/lib/trade-presets";
+import { POPULAR_SERVICES, presetsForSegments, suggestedSkillsForCategories, type TradePreset } from "@/lib/trade-presets";
 
 import {
   createCatalogRequest,
@@ -491,6 +491,7 @@ function RegisterTechnicianPage() {
   const activeBrandGroup = brandGroups.find((g) => g.category === activeBrandTab) ?? null;
 
   const equipmentSearchGroups = searchEquipment(catalogQuery, 80, draft.segments ?? []);
+  const tradePresets = useMemo(() => presetsForSegments(draft.segments ?? []), [draft.segments]);
 
   const toggleSegment = (segmentId: string) =>
     setDraft((prev) => {
@@ -720,7 +721,7 @@ function RegisterTechnicianPage() {
                       One tap fills the usual equipment, skills and services. You can edit everything afterwards.
                     </p>
                     <div className="grid gap-2 sm:grid-cols-2">
-                      {TRADE_PRESETS.map((preset) => (
+                      {tradePresets.map((preset) => (
                         <button
                           key={preset.id}
                           type="button"
