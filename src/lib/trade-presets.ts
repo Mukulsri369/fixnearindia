@@ -340,3 +340,49 @@ export const POPULAR_SERVICES: string[] = [
   "Troubleshooting",
   "AMC",
 ].filter((s) => serviceSet.has(s));
+
+/* ------------------------------------------------------------------ */
+/* Per-category quick starts, generated from the master catalog        */
+/* ------------------------------------------------------------------ */
+
+const CATEGORY_PRESET_SERVICES = [...COMMON_SERVICES, "Installation", "Troubleshooting", "Preventive Maintenance", "AMC"].filter(
+  (s) => serviceSet.has(s),
+);
+
+const slug = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+/** One quick-start card per equipment category, so every segment has suggestions. */
+export const CATEGORY_PRESETS: TradePreset[] = SEGMENTS.flatMap((segment) =>
+  segment.categories.map((category) => {
+    const items = category.equipment.slice(0, 12);
+    const skillGroups = CATEGORY_SKILL_GROUPS[category.name] ?? ["Electrical", "Mechanical / Electromechanical"];
+    return {
+      id: `cat-${segment.id}-${slug(category.name)}`,
+      label: category.name,
+      description: items.slice(0, 4).join(", ") + (category.equipment.length > 4 ? " & more" : ""),
+      segments: [segment.id],
+      equipment: items.map((equipment) => ({ segment: segment.id, category: category.name, equipment })),
+      skills: Array.from(new Set(skillGroups.flatMap((name) => (skillGroupIndex.get(name) ?? []).slice(0, 8)))),
+      services: CATEGORY_PRESET_SERVICES,
+    } satisfies TradePreset;
+  }),
+);
+
+/**
+ * Quick starts relevant to the segments the technician selected: the curated
+ * trade bundles first, then a card for every category inside those segments.
+ */
+export function presetsForSegments(selected: string[]): TradePreset[] {
+  const active = selected.length ? selected : SEGMENTS.map((s) => s.id);
+  const curated = TRADE_PRESETS.filter((p) => p.segments.some((s) => active.includes(s))).map((p) => ({
+    ...p,
+    segments: p.segments.filter((s) => active.includes(s)),
+    equipment: p.equipment.filter((e) => active.includes(e.segment)),
+  }));
+  const byCategory = CATEGORY_PRESETS.filter((p) => active.includes(p.segments[0]!));
+  return [...curated.filter((p) => p.equipment.length > 0), ...byCategory];
+}
