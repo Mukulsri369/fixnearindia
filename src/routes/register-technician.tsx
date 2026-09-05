@@ -491,7 +491,7 @@ function RegisterTechnicianPage() {
   const activeBrandGroup = brandGroups.find((g) => g.category === activeBrandTab) ?? null;
 
   const equipmentSearchGroups = searchEquipment(catalogQuery, 80, draft.segments ?? []);
-  const tradePresets = useMemo(() => presetsForSegments(draft.segments ?? []), [draft.segments]);
+  const tradePresets = presetsForSegments(draft.segments ?? []);
 
   const toggleSegment = (segmentId: string) =>
     setDraft((prev) => {
