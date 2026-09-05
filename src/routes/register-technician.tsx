@@ -41,7 +41,7 @@ import {
 } from "@/lib/technician-catalog";
 import { brandsForCategories } from "@/lib/equipment-brands";
 import { searchEquipment } from "@/lib/catalog-search";
-import { POPULAR_SERVICES, TRADE_PRESETS, suggestedSkillsForCategories, type TradePreset } from "@/lib/trade-presets";
+import { POPULAR_SERVICES, presetsForSegments, suggestedSkillsForCategories, type TradePreset } from "@/lib/trade-presets";
 
 import {
   createCatalogRequest,
@@ -491,6 +491,7 @@ function RegisterTechnicianPage() {
   const activeBrandGroup = brandGroups.find((g) => g.category === activeBrandTab) ?? null;
 
   const equipmentSearchGroups = searchEquipment(catalogQuery, 80, draft.segments ?? []);
+  const tradePresets = useMemo(() => presetsForSegments(draft.segments ?? []), [draft.segments]);
 
   const toggleSegment = (segmentId: string) =>
     setDraft((prev) => {
@@ -717,10 +718,11 @@ function RegisterTechnicianPage() {
                   <div className="space-y-2">
                     <p className="text-sm font-medium">Quick start — pick your trade</p>
                     <p className="text-xs text-muted-foreground">
-                      One tap fills the usual equipment, skills and services. You can edit everything afterwards.
+                      Suggestions below match the segments you picked. One tap fills the usual equipment, skills and
+                      services — you can edit everything afterwards.
                     </p>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {TRADE_PRESETS.map((preset) => (
+                    <div className="grid max-h-80 gap-2 overflow-y-auto rounded-xl border border-border p-2 sm:grid-cols-2">
+                      {tradePresets.map((preset) => (
                         <button
                           key={preset.id}
                           type="button"
