@@ -1306,23 +1306,17 @@ function RegisterTechnicianPage() {
                   <Review label="Skills" value={`${(draft.skills ?? []).length} selected`} onEdit={() => setStep(4)} />
                   <Review label="Brands" value={`${(draft.brands ?? []).length} selected`} onEdit={() => setStep(5)} />
                   <Review label="Services" value={(draft.services ?? []).join(", ")} onEdit={() => setStep(6)} />
-                  <Review label="Qualifications" value={`${(draft.qualifications ?? []).length} added`} onEdit={() => setStep(7)} />
-                  <Review label="Certifications" value={`${(draft.certifications ?? []).length} added`} onEdit={() => setStep(8)} />
                   <Review
                     label="Service areas"
                     value={(draft.serviceAreas ?? []).map((a: any) => `${a.city}, ${a.state}`).join(" • ")}
                     onEdit={() => setStep(9)}
                   />
-                  <Review label="Service modes" value={(draft.serviceModes ?? []).join(", ")} onEdit={() => setStep(10)} />
+                  <Review label="Service modes" value={(draft.serviceModes ?? []).join(", ")} onEdit={() => setStep(9)} />
                   <Review label="Availability" value={(draft.availability?.days ?? []).join(", ")} onEdit={() => setStep(11)} />
                   <Review label="Pricing" value={draft.pricing?.model} onEdit={() => setStep(12)} />
                   <Review label="Business" value={draft.business?.businessType} onEdit={() => setStep(13)} />
                   <Review label="Documents" value={`${(draft.documents ?? []).length} uploaded`} onEdit={() => setStep(14)} />
-                  <Review
-                    label="Payment"
-                    value={draft.payment?.upiId || draft.payment?.accountNumber ? "Provided" : "Not provided"}
-                    onEdit={() => setStep(15)}
-                  />
+
 
                   <Button className="w-full" size="lg" disabled={submitting} onClick={handleSubmitApplication}>
                     {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
