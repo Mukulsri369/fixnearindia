@@ -334,15 +334,17 @@ function RegisterTechnicianPage() {
   };
 
   const handleSubmitApplication = async () => {
-    for (let s = 1; s <= 15; s += 1) {
+    for (const s of ACTIVE_STEPS) {
+      if (s === 16) continue;
       const errs = validateStep(s);
       if (errs.length > 0) {
         setStep(s);
         setStepErrors(errs);
-        toast.error(`Step ${s}: ${errs[0]}`);
+        toast.error(errs[0]!);
         return;
       }
     }
+
     setStepErrors([]);
     const readyDocs = (draft.documents ?? []).filter((d: any) => d?.filePath);
     if (readyDocs.length === 0) {
