@@ -1269,27 +1269,8 @@ function RegisterTechnicianPage() {
                 </div>
               )}
 
-              {step === 15 && (
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Payment details are private and used only to settle your completed jobs.
-                  </p>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Field label="Account holder name">
-                      <Input value={draft.payment?.accountHolderName ?? ""} onChange={(e) => setNested("payment", { accountHolderName: e.target.value })} />
-                    </Field>
-                    <Field label="Account number">
-                      <Input value={draft.payment?.accountNumber ?? ""} onChange={(e) => setNested("payment", { accountNumber: e.target.value })} />
-                    </Field>
-                    <Field label="IFSC code">
-                      <Input value={draft.payment?.ifsc ?? ""} onChange={(e) => setNested("payment", { ifsc: e.target.value.toUpperCase() })} />
-                    </Field>
-                    <Field label="UPI ID">
-                      <Input value={draft.payment?.upiId ?? ""} onChange={(e) => setNested("payment", { upiId: e.target.value })} />
-                    </Field>
-                  </div>
-                </div>
-              )}
+
+
 
               {step === 16 && (
                 <div className="space-y-4">
