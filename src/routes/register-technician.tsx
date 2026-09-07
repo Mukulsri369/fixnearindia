@@ -28,7 +28,6 @@ import {
   ONBOARDING_STATUS_LABELS,
   ONBOARDING_STEPS,
   PRICING_MODELS,
-  QUALIFICATIONS,
   SEGMENTS,
   SERVICES,
   SERVICE_MODES,
@@ -59,7 +58,7 @@ export const Route = createFileRoute("/register-technician")({
       {
         name: "description",
         content:
-          "Complete the 16-step FixNear technician onboarding: skills, equipment, brands, service area, documents and payment details.",
+          "Complete the FixNear technician onboarding: skills, equipment, brands, service area, documents and payment details.",
       },
       { property: "og:title", content: "Technician Onboarding — FixNear India" },
       {
@@ -103,6 +102,12 @@ const emptyDraft: Draft = {
   business: { businessType: "Proprietorship", gstNumber: "", udyam: "", registrationNumber: "" },
   documents: [],
   payment: { accountHolderName: "", accountNumber: "", ifsc: "", upiId: "" },
+};
+
+const ACTIVE_STEPS = [1, 2, 3, 4, 5, 6, 9, 11, 12, 13, 14, 16];
+
+const STEP_TITLES: Record<number, string> = {
+  9: "Service Area & Service Mode",
 };
 
 const SEGMENT_DESCRIPTIONS: Record<string, string> = {
@@ -160,9 +165,12 @@ function RegisterTechnicianPage() {
       fullName: saved.fullName || state.profile?.full_name || "",
       phone: saved.phone || state.profile?.phone || "",
     });
-    setStep(state.draft?.current_step ?? 1);
+    const savedStep = state.draft?.current_step ?? 1;
+    setStep(ACTIVE_STEPS.includes(savedStep) ? savedStep : ACTIVE_STEPS.find((s) => s >= savedStep) ?? 1);
     setHydrated(true);
   }, [state, hydrated]);
+
+  const stepIndex = Math.max(ACTIVE_STEPS.indexOf(step), 0);
 
   const set = (patch: Draft) => setDraft((prev) => ({ ...prev, ...patch }));
   const setNested = (key: string, patch: Draft) =>
@@ -183,18 +191,16 @@ function RegisterTechnicianPage() {
       (draft.brands ?? []).length > 0,
       (draft.services ?? []).length > 0,
       !!draft.experienceYears,
-      true,
       (draft.serviceAreas ?? []).length > 0,
       (draft.serviceModes ?? []).length > 0,
       (draft.availability?.days ?? []).length > 0,
       !!draft.pricing?.model,
       !!draft.business?.businessType,
       (draft.documents ?? []).length > 0,
-      !!draft.payment?.accountNumber || !!draft.payment?.upiId,
-      true,
     ];
     return Math.round((checks.filter(Boolean).length / checks.length) * 100);
   }, [draft]);
+
 
   const persist = async (nextStep: number) => {
     setSaving(true);
@@ -244,22 +250,6 @@ function RegisterTechnicianPage() {
       case 6:
         if ((draft.services ?? []).length === 0) errs.push("Select at least one service you offer.");
         break;
-      case 7:
-        (draft.qualifications ?? []).forEach((q: any, i: number) => {
-          if (!q?.qualification) errs.push(`Qualification ${i + 1}: select a qualification.`);
-          if (q?.year && (Number(q.year) < 1950 || Number(q.year) > new Date().getFullYear()))
-            errs.push(`Qualification ${i + 1}: enter a valid year.`);
-        });
-        break;
-      case 8:
-        (draft.certifications ?? []).forEach((c: any, i: number) => {
-          if (!String(c?.name ?? "").trim()) errs.push(`Certification ${i + 1}: add the certification name.`);
-          if (!String(c?.issuingOrganization ?? "").trim())
-            errs.push(`Certification ${i + 1}: add the issuing organization.`);
-          if (c?.issueDate && c?.expiryDate && c.expiryDate < c.issueDate)
-            errs.push(`Certification ${i + 1}: expiry date cannot be before the issue date.`);
-        });
-        break;
       case 9: {
         const areas = draft.serviceAreas ?? [];
         if (areas.length === 0) errs.push("Add at least one service area.");
@@ -268,11 +258,10 @@ function RegisterTechnicianPage() {
           if (!a?.city) errs.push(`Service area ${i + 1}: select a city.`);
           if (digits(a?.pincode).length !== 6) errs.push(`Service area ${i + 1}: enter a valid 6-digit pincode.`);
         });
-        break;
-      }
-      case 10:
         if ((draft.serviceModes ?? []).length === 0) errs.push("Select at least one service mode.");
         break;
+      }
+
       case 11: {
         if ((draft.availability?.days ?? []).length === 0) errs.push("Select your working days.");
         const from = draft.availability?.from;
@@ -315,20 +304,6 @@ function RegisterTechnicianPage() {
         });
         break;
       }
-      case 15: {
-        const upi = String(draft.payment?.upiId ?? "").trim();
-        const account = digits(draft.payment?.accountNumber);
-        const ifsc = String(draft.payment?.ifsc ?? "").trim();
-        if (!upi && !account) errs.push("Provide either a UPI ID or a bank account number.");
-        if (upi && !/^[\w.\-]{2,}@[a-zA-Z]{2,}$/.test(upi)) errs.push("Enter a valid UPI ID (e.g. name@bank).");
-        if (account) {
-          if (account.length < 9 || account.length > 18) errs.push("Account number must be 9–18 digits.");
-          if (!String(draft.payment?.accountHolderName ?? "").trim())
-            errs.push("Add the account holder name.");
-          if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc)) errs.push("Enter a valid IFSC code (e.g. HDFC0001234).");
-        }
-        break;
-      }
       default:
         break;
     }
@@ -343,17 +318,18 @@ function RegisterTechnicianPage() {
       return;
     }
     setStepErrors([]);
-    const next = Math.min(step + 1, 16);
+    const next = ACTIVE_STEPS[Math.min(stepIndex + 1, ACTIVE_STEPS.length - 1)]!;
     setStep(next);
     await persist(next);
   };
 
   const goBack = async () => {
     setStepErrors([]);
-    const prev = Math.max(step - 1, 1);
+    const prev = ACTIVE_STEPS[Math.max(stepIndex - 1, 0)]!;
     setStep(prev);
     await persist(prev);
   };
+
 
 
   const handleUpload = async (file: File, kind: string) => {
@@ -364,15 +340,17 @@ function RegisterTechnicianPage() {
   };
 
   const handleSubmitApplication = async () => {
-    for (let s = 1; s <= 15; s += 1) {
+    for (const s of ACTIVE_STEPS) {
+      if (s === 16) continue;
       const errs = validateStep(s);
       if (errs.length > 0) {
         setStep(s);
         setStepErrors(errs);
-        toast.error(`Step ${s}: ${errs[0]}`);
+        toast.error(errs[0]!);
         return;
       }
     }
+
     setStepErrors([]);
     const readyDocs = (draft.documents ?? []).filter((d: any) => d?.filePath);
     if (readyDocs.length === 0) {
@@ -596,17 +574,18 @@ function RegisterTechnicianPage() {
         <div className="mb-6">
           <div className="flex items-baseline justify-between">
             <p className="text-sm text-muted-foreground">
-              Step {step} of 16 {saving ? "• saving…" : ""}
+              Step {stepIndex + 1} of {ACTIVE_STEPS.length} {saving ? "• saving…" : ""}
             </p>
             <p className="text-sm font-medium">{completion}% complete</p>
           </div>
-          <Progress value={(step / 16) * 100} className="mt-2" />
+          <Progress value={((stepIndex + 1) / ACTIVE_STEPS.length) * 100} className="mt-2" />
         </div>
 
         <motion.div key={step} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">{ONBOARDING_STEPS[step - 1]}</CardTitle>
+              <CardTitle className="text-2xl">{STEP_TITLES[step] ?? ONBOARDING_STEPS[step - 1]}</CardTitle>
+
             </CardHeader>
             <CardContent className="space-y-6">
               {stepErrors.length > 0 && (
@@ -979,110 +958,61 @@ function RegisterTechnicianPage() {
               )}
 
 
-              {step === 7 && (
-                <RowEditor
-                  items={draft.qualifications ?? []}
-                  onChange={(items) => set({ qualifications: items })}
-                  addLabel="Add qualification"
-                  empty={{ qualification: QUALIFICATIONS[0], institute: "", year: "" }}
-                  render={(item, update) => (
-                    <div className="grid gap-3 sm:grid-cols-3">
-                      <Choice value={item.qualification} options={QUALIFICATIONS} onChange={(v) => update({ qualification: v })} />
-                      <Input placeholder="Institute" value={item.institute} onChange={(e) => update({ institute: e.target.value })} />
-                      <Input placeholder="Year" type="number" value={item.year} onChange={(e) => update({ year: e.target.value })} />
-                    </div>
-                  )}
-                />
-              )}
-
-              {step === 8 && (
-                <RowEditor
-                  items={draft.certifications ?? []}
-                  onChange={(items) => set({ certifications: items })}
-                  addLabel="Add certification"
-                  empty={{ name: "", issuingOrganization: "", certificateNumber: "", issueDate: "", expiryDate: "", filePath: "" }}
-                  render={(item, update) => (
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <Input placeholder="Certification name" value={item.name} onChange={(e) => update({ name: e.target.value })} />
-                      <Input placeholder="Issuing organization" value={item.issuingOrganization} onChange={(e) => update({ issuingOrganization: e.target.value })} />
-                      <Input placeholder="Certificate number" value={item.certificateNumber} onChange={(e) => update({ certificateNumber: e.target.value })} />
-                      <div className="grid grid-cols-2 gap-3">
-                        <Input type="date" value={item.issueDate} onChange={(e) => update({ issueDate: e.target.value })} />
-                        <Input type="date" value={item.expiryDate} onChange={(e) => update({ expiryDate: e.target.value })} />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <Input
-                          type="file"
-                          accept="image/*,application/pdf"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            try {
-                              const res = await handleUpload(file, "certificate");
-                              update({ filePath: res.path });
-                              toast.success("Certificate uploaded");
-                            } catch (err: any) {
-                              toast.error(err.message || "Upload failed");
-                            }
-                          }}
-                        />
-                        {item.filePath ? <p className="mt-1 text-xs text-muted-foreground">Uploaded ✓</p> : null}
-                      </div>
-                    </div>
-                  )}
-                />
-              )}
-
               {step === 9 && (
-                <RowEditor
-                  items={draft.serviceAreas ?? []}
-                  onChange={(items) => set({ serviceAreas: items })}
-                  addLabel="Add service area"
-                  empty={{ state: "", city: "", district: "", pincode: "", locality: "", radiusKm: 10, panIndia: false }}
-                  render={(item, update) => (
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <Choice
-                        value={item.state}
-                        options={INDIA_STATES}
-                        placeholder="Select state"
-                        onChange={(v) => update({ state: v, city: "" })}
-                      />
-                      <Choice
-                        value={item.city}
-                        options={citiesForState(item.state)}
-                        placeholder={item.state ? "Select city" : "Select a state first"}
-                        onChange={(v) => update({ city: v })}
-                      />
-                      <Input placeholder="District (optional)" value={item.district} onChange={(e) => update({ district: e.target.value })} />
-                      <Input placeholder="Pincode" value={item.pincode} onChange={(e) => update({ pincode: e.target.value })} />
-                      <Input placeholder="Locality (optional)" value={item.locality} onChange={(e) => update({ locality: e.target.value })} />
-                      <Choice
-                        value={String(item.radiusKm)}
-                        options={SERVICE_RADIUS_OPTIONS.map((r) => String(r))}
-                        onChange={(v) => update({ radiusKm: Number(v) })}
-                      />
-                      <label className="flex items-center gap-2 text-sm sm:col-span-2">
-                        <Switch checked={!!item.panIndia} onCheckedChange={(v) => update({ panIndia: v })} />
-                        Available pan-India for this expertise
-                      </label>
-                    </div>
-                  )}
-                />
-              )}
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <Label>Service areas</Label>
+                    <RowEditor
+                      items={draft.serviceAreas ?? []}
+                      onChange={(items) => set({ serviceAreas: items })}
+                      addLabel="Add service area"
+                      empty={{ state: "", city: "", district: "", pincode: "", locality: "", radiusKm: 10, panIndia: false }}
+                      render={(item, update) => (
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <Choice
+                            value={item.state}
+                            options={INDIA_STATES}
+                            placeholder="Select state"
+                            onChange={(v) => update({ state: v, city: "" })}
+                          />
+                          <Choice
+                            value={item.city}
+                            options={citiesForState(item.state)}
+                            placeholder={item.state ? "Select city" : "Select a state first"}
+                            onChange={(v) => update({ city: v })}
+                          />
+                          <Input placeholder="District (optional)" value={item.district} onChange={(e) => update({ district: e.target.value })} />
+                          <Input placeholder="Pincode" value={item.pincode} onChange={(e) => update({ pincode: e.target.value })} />
+                          <Input placeholder="Locality (optional)" value={item.locality} onChange={(e) => update({ locality: e.target.value })} />
+                          <Choice
+                            value={String(item.radiusKm)}
+                            options={SERVICE_RADIUS_OPTIONS.map((r) => String(r))}
+                            onChange={(v) => update({ radiusKm: Number(v) })}
+                          />
+                          <label className="flex items-center gap-2 text-sm sm:col-span-2">
+                            <Switch checked={!!item.panIndia} onCheckedChange={(v) => update({ panIndia: v })} />
+                            Available pan-India for this expertise
+                          </label>
+                        </div>
+                      )}
+                    />
+                  </div>
 
-              {step === 10 && (
-                <div className="space-y-2">
-                  {SERVICE_MODES.map((mode) => (
-                    <label key={mode} className="flex items-center gap-3 rounded-xl border border-border p-3 text-sm">
-                      <Checkbox
-                        checked={(draft.serviceModes ?? []).includes(mode)}
-                        onCheckedChange={() => toggleIn("serviceModes", mode)}
-                      />
-                      {mode}
-                    </label>
-                  ))}
+                  <div className="space-y-2">
+                    <Label>How do you serve customers?</Label>
+                    {SERVICE_MODES.map((mode) => (
+                      <label key={mode} className="flex items-center gap-3 rounded-xl border border-border p-3 text-sm">
+                        <Checkbox
+                          checked={(draft.serviceModes ?? []).includes(mode)}
+                          onCheckedChange={() => toggleIn("serviceModes", mode)}
+                        />
+                        {mode}
+                      </label>
+                    ))}
+                  </div>
                 </div>
               )}
+
 
               {step === 11 && (
                 <div className="space-y-5">
@@ -1269,27 +1199,8 @@ function RegisterTechnicianPage() {
                 </div>
               )}
 
-              {step === 15 && (
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Payment details are private and used only to settle your completed jobs.
-                  </p>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Field label="Account holder name">
-                      <Input value={draft.payment?.accountHolderName ?? ""} onChange={(e) => setNested("payment", { accountHolderName: e.target.value })} />
-                    </Field>
-                    <Field label="Account number">
-                      <Input value={draft.payment?.accountNumber ?? ""} onChange={(e) => setNested("payment", { accountNumber: e.target.value })} />
-                    </Field>
-                    <Field label="IFSC code">
-                      <Input value={draft.payment?.ifsc ?? ""} onChange={(e) => setNested("payment", { ifsc: e.target.value.toUpperCase() })} />
-                    </Field>
-                    <Field label="UPI ID">
-                      <Input value={draft.payment?.upiId ?? ""} onChange={(e) => setNested("payment", { upiId: e.target.value })} />
-                    </Field>
-                  </div>
-                </div>
-              )}
+
+
 
               {step === 16 && (
                 <div className="space-y-4">
@@ -1306,23 +1217,17 @@ function RegisterTechnicianPage() {
                   <Review label="Skills" value={`${(draft.skills ?? []).length} selected`} onEdit={() => setStep(4)} />
                   <Review label="Brands" value={`${(draft.brands ?? []).length} selected`} onEdit={() => setStep(5)} />
                   <Review label="Services" value={(draft.services ?? []).join(", ")} onEdit={() => setStep(6)} />
-                  <Review label="Qualifications" value={`${(draft.qualifications ?? []).length} added`} onEdit={() => setStep(7)} />
-                  <Review label="Certifications" value={`${(draft.certifications ?? []).length} added`} onEdit={() => setStep(8)} />
                   <Review
                     label="Service areas"
                     value={(draft.serviceAreas ?? []).map((a: any) => `${a.city}, ${a.state}`).join(" • ")}
                     onEdit={() => setStep(9)}
                   />
-                  <Review label="Service modes" value={(draft.serviceModes ?? []).join(", ")} onEdit={() => setStep(10)} />
+                  <Review label="Service modes" value={(draft.serviceModes ?? []).join(", ")} onEdit={() => setStep(9)} />
                   <Review label="Availability" value={(draft.availability?.days ?? []).join(", ")} onEdit={() => setStep(11)} />
                   <Review label="Pricing" value={draft.pricing?.model} onEdit={() => setStep(12)} />
                   <Review label="Business" value={draft.business?.businessType} onEdit={() => setStep(13)} />
                   <Review label="Documents" value={`${(draft.documents ?? []).length} uploaded`} onEdit={() => setStep(14)} />
-                  <Review
-                    label="Payment"
-                    value={draft.payment?.upiId || draft.payment?.accountNumber ? "Provided" : "Not provided"}
-                    onEdit={() => setStep(15)}
-                  />
+
 
                   <Button className="w-full" size="lg" disabled={submitting} onClick={handleSubmitApplication}>
                     {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -1332,7 +1237,7 @@ function RegisterTechnicianPage() {
               )}
 
               <div className="flex items-center justify-between border-t border-border pt-5">
-                <Button variant="outline" onClick={goBack} disabled={step === 1}>
+                <Button variant="outline" onClick={goBack} disabled={stepIndex === 0}>
                   <ArrowLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
                 <div className="flex items-center gap-2">
