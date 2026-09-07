@@ -105,6 +105,12 @@ const emptyDraft: Draft = {
   payment: { accountHolderName: "", accountNumber: "", ifsc: "", upiId: "" },
 };
 
+const ACTIVE_STEPS = [1, 2, 3, 4, 5, 6, 9, 11, 12, 13, 14, 16];
+
+const STEP_TITLES: Record<number, string> = {
+  9: "Service Area & Service Mode",
+};
+
 const SEGMENT_DESCRIPTIONS: Record<string, string> = {
   home: "Everyday household work — ACs, fridges, washing machines, kitchen appliances, RO/water purifiers, geysers, inverters, TVs, computers, CCTV, smart home, lighting and fitness machines.",
   commercial:
