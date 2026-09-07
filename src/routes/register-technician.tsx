@@ -1238,7 +1238,7 @@ function RegisterTechnicianPage() {
               )}
 
               <div className="flex items-center justify-between border-t border-border pt-5">
-                <Button variant="outline" onClick={goBack} disabled={step === 1}>
+                <Button variant="outline" onClick={goBack} disabled={stepIndex === 0}>
                   <ArrowLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
                 <div className="flex items-center gap-2">
