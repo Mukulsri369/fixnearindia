@@ -298,20 +298,6 @@ function RegisterTechnicianPage() {
         });
         break;
       }
-      case 15: {
-        const upi = String(draft.payment?.upiId ?? "").trim();
-        const account = digits(draft.payment?.accountNumber);
-        const ifsc = String(draft.payment?.ifsc ?? "").trim();
-        if (!upi && !account) errs.push("Provide either a UPI ID or a bank account number.");
-        if (upi && !/^[\w.\-]{2,}@[a-zA-Z]{2,}$/.test(upi)) errs.push("Enter a valid UPI ID (e.g. name@bank).");
-        if (account) {
-          if (account.length < 9 || account.length > 18) errs.push("Account number must be 9–18 digits.");
-          if (!String(draft.payment?.accountHolderName ?? "").trim())
-            errs.push("Add the account holder name.");
-          if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc)) errs.push("Enter a valid IFSC code (e.g. HDFC0001234).");
-        }
-        break;
-      }
       default:
         break;
     }
@@ -326,17 +312,18 @@ function RegisterTechnicianPage() {
       return;
     }
     setStepErrors([]);
-    const next = Math.min(step + 1, 16);
+    const next = ACTIVE_STEPS[Math.min(stepIndex + 1, ACTIVE_STEPS.length - 1)]!;
     setStep(next);
     await persist(next);
   };
 
   const goBack = async () => {
     setStepErrors([]);
-    const prev = Math.max(step - 1, 1);
+    const prev = ACTIVE_STEPS[Math.max(stepIndex - 1, 0)]!;
     setStep(prev);
     await persist(prev);
   };
+
 
 
   const handleUpload = async (file: File, kind: string) => {
