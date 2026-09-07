@@ -28,7 +28,6 @@ import {
   ONBOARDING_STATUS_LABELS,
   ONBOARDING_STEPS,
   PRICING_MODELS,
-  QUALIFICATIONS,
   SEGMENTS,
   SERVICES,
   SERVICE_MODES,
@@ -59,7 +58,7 @@ export const Route = createFileRoute("/register-technician")({
       {
         name: "description",
         content:
-          "Complete the 16-step FixNear technician onboarding: skills, equipment, brands, service area, documents and payment details.",
+          "Complete the FixNear technician onboarding: skills, equipment, brands, service area, documents and payment details.",
       },
       { property: "og:title", content: "Technician Onboarding — FixNear India" },
       {
