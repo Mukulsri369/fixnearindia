@@ -160,9 +160,12 @@ function RegisterTechnicianPage() {
       fullName: saved.fullName || state.profile?.full_name || "",
       phone: saved.phone || state.profile?.phone || "",
     });
-    setStep(state.draft?.current_step ?? 1);
+    const savedStep = state.draft?.current_step ?? 1;
+    setStep(ACTIVE_STEPS.includes(savedStep) ? savedStep : ACTIVE_STEPS.find((s) => s >= savedStep) ?? 1);
     setHydrated(true);
   }, [state, hydrated]);
+
+  const stepIndex = Math.max(ACTIVE_STEPS.indexOf(step), 0);
 
   const set = (patch: Draft) => setDraft((prev) => ({ ...prev, ...patch }));
   const setNested = (key: string, patch: Draft) =>
@@ -183,18 +186,16 @@ function RegisterTechnicianPage() {
       (draft.brands ?? []).length > 0,
       (draft.services ?? []).length > 0,
       !!draft.experienceYears,
-      true,
       (draft.serviceAreas ?? []).length > 0,
       (draft.serviceModes ?? []).length > 0,
       (draft.availability?.days ?? []).length > 0,
       !!draft.pricing?.model,
       !!draft.business?.businessType,
       (draft.documents ?? []).length > 0,
-      !!draft.payment?.accountNumber || !!draft.payment?.upiId,
-      true,
     ];
     return Math.round((checks.filter(Boolean).length / checks.length) * 100);
   }, [draft]);
+
 
   const persist = async (nextStep: number) => {
     setSaving(true);
