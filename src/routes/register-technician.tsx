@@ -596,17 +596,18 @@ function RegisterTechnicianPage() {
         <div className="mb-6">
           <div className="flex items-baseline justify-between">
             <p className="text-sm text-muted-foreground">
-              Step {step} of 16 {saving ? "• saving…" : ""}
+              Step {stepIndex + 1} of {ACTIVE_STEPS.length} {saving ? "• saving…" : ""}
             </p>
             <p className="text-sm font-medium">{completion}% complete</p>
           </div>
-          <Progress value={(step / 16) * 100} className="mt-2" />
+          <Progress value={((stepIndex + 1) / ACTIVE_STEPS.length) * 100} className="mt-2" />
         </div>
 
         <motion.div key={step} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">{ONBOARDING_STEPS[step - 1]}</CardTitle>
+              <CardTitle className="text-2xl">{STEP_TITLES[step] ?? ONBOARDING_STEPS[step - 1]}</CardTitle>
+
             </CardHeader>
             <CardContent className="space-y-6">
               {stepErrors.length > 0 && (
