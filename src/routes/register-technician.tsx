@@ -979,110 +979,61 @@ function RegisterTechnicianPage() {
               )}
 
 
-              {step === 7 && (
-                <RowEditor
-                  items={draft.qualifications ?? []}
-                  onChange={(items) => set({ qualifications: items })}
-                  addLabel="Add qualification"
-                  empty={{ qualification: QUALIFICATIONS[0], institute: "", year: "" }}
-                  render={(item, update) => (
-                    <div className="grid gap-3 sm:grid-cols-3">
-                      <Choice value={item.qualification} options={QUALIFICATIONS} onChange={(v) => update({ qualification: v })} />
-                      <Input placeholder="Institute" value={item.institute} onChange={(e) => update({ institute: e.target.value })} />
-                      <Input placeholder="Year" type="number" value={item.year} onChange={(e) => update({ year: e.target.value })} />
-                    </div>
-                  )}
-                />
-              )}
-
-              {step === 8 && (
-                <RowEditor
-                  items={draft.certifications ?? []}
-                  onChange={(items) => set({ certifications: items })}
-                  addLabel="Add certification"
-                  empty={{ name: "", issuingOrganization: "", certificateNumber: "", issueDate: "", expiryDate: "", filePath: "" }}
-                  render={(item, update) => (
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <Input placeholder="Certification name" value={item.name} onChange={(e) => update({ name: e.target.value })} />
-                      <Input placeholder="Issuing organization" value={item.issuingOrganization} onChange={(e) => update({ issuingOrganization: e.target.value })} />
-                      <Input placeholder="Certificate number" value={item.certificateNumber} onChange={(e) => update({ certificateNumber: e.target.value })} />
-                      <div className="grid grid-cols-2 gap-3">
-                        <Input type="date" value={item.issueDate} onChange={(e) => update({ issueDate: e.target.value })} />
-                        <Input type="date" value={item.expiryDate} onChange={(e) => update({ expiryDate: e.target.value })} />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <Input
-                          type="file"
-                          accept="image/*,application/pdf"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            try {
-                              const res = await handleUpload(file, "certificate");
-                              update({ filePath: res.path });
-                              toast.success("Certificate uploaded");
-                            } catch (err: any) {
-                              toast.error(err.message || "Upload failed");
-                            }
-                          }}
-                        />
-                        {item.filePath ? <p className="mt-1 text-xs text-muted-foreground">Uploaded ✓</p> : null}
-                      </div>
-                    </div>
-                  )}
-                />
-              )}
-
               {step === 9 && (
-                <RowEditor
-                  items={draft.serviceAreas ?? []}
-                  onChange={(items) => set({ serviceAreas: items })}
-                  addLabel="Add service area"
-                  empty={{ state: "", city: "", district: "", pincode: "", locality: "", radiusKm: 10, panIndia: false }}
-                  render={(item, update) => (
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <Choice
-                        value={item.state}
-                        options={INDIA_STATES}
-                        placeholder="Select state"
-                        onChange={(v) => update({ state: v, city: "" })}
-                      />
-                      <Choice
-                        value={item.city}
-                        options={citiesForState(item.state)}
-                        placeholder={item.state ? "Select city" : "Select a state first"}
-                        onChange={(v) => update({ city: v })}
-                      />
-                      <Input placeholder="District (optional)" value={item.district} onChange={(e) => update({ district: e.target.value })} />
-                      <Input placeholder="Pincode" value={item.pincode} onChange={(e) => update({ pincode: e.target.value })} />
-                      <Input placeholder="Locality (optional)" value={item.locality} onChange={(e) => update({ locality: e.target.value })} />
-                      <Choice
-                        value={String(item.radiusKm)}
-                        options={SERVICE_RADIUS_OPTIONS.map((r) => String(r))}
-                        onChange={(v) => update({ radiusKm: Number(v) })}
-                      />
-                      <label className="flex items-center gap-2 text-sm sm:col-span-2">
-                        <Switch checked={!!item.panIndia} onCheckedChange={(v) => update({ panIndia: v })} />
-                        Available pan-India for this expertise
-                      </label>
-                    </div>
-                  )}
-                />
-              )}
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <Label>Service areas</Label>
+                    <RowEditor
+                      items={draft.serviceAreas ?? []}
+                      onChange={(items) => set({ serviceAreas: items })}
+                      addLabel="Add service area"
+                      empty={{ state: "", city: "", district: "", pincode: "", locality: "", radiusKm: 10, panIndia: false }}
+                      render={(item, update) => (
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <Choice
+                            value={item.state}
+                            options={INDIA_STATES}
+                            placeholder="Select state"
+                            onChange={(v) => update({ state: v, city: "" })}
+                          />
+                          <Choice
+                            value={item.city}
+                            options={citiesForState(item.state)}
+                            placeholder={item.state ? "Select city" : "Select a state first"}
+                            onChange={(v) => update({ city: v })}
+                          />
+                          <Input placeholder="District (optional)" value={item.district} onChange={(e) => update({ district: e.target.value })} />
+                          <Input placeholder="Pincode" value={item.pincode} onChange={(e) => update({ pincode: e.target.value })} />
+                          <Input placeholder="Locality (optional)" value={item.locality} onChange={(e) => update({ locality: e.target.value })} />
+                          <Choice
+                            value={String(item.radiusKm)}
+                            options={SERVICE_RADIUS_OPTIONS.map((r) => String(r))}
+                            onChange={(v) => update({ radiusKm: Number(v) })}
+                          />
+                          <label className="flex items-center gap-2 text-sm sm:col-span-2">
+                            <Switch checked={!!item.panIndia} onCheckedChange={(v) => update({ panIndia: v })} />
+                            Available pan-India for this expertise
+                          </label>
+                        </div>
+                      )}
+                    />
+                  </div>
 
-              {step === 10 && (
-                <div className="space-y-2">
-                  {SERVICE_MODES.map((mode) => (
-                    <label key={mode} className="flex items-center gap-3 rounded-xl border border-border p-3 text-sm">
-                      <Checkbox
-                        checked={(draft.serviceModes ?? []).includes(mode)}
-                        onCheckedChange={() => toggleIn("serviceModes", mode)}
-                      />
-                      {mode}
-                    </label>
-                  ))}
+                  <div className="space-y-2">
+                    <Label>How do you serve customers?</Label>
+                    {SERVICE_MODES.map((mode) => (
+                      <label key={mode} className="flex items-center gap-3 rounded-xl border border-border p-3 text-sm">
+                        <Checkbox
+                          checked={(draft.serviceModes ?? []).includes(mode)}
+                          onCheckedChange={() => toggleIn("serviceModes", mode)}
+                        />
+                        {mode}
+                      </label>
+                    ))}
+                  </div>
                 </div>
               )}
+
 
               {step === 11 && (
                 <div className="space-y-5">
