@@ -244,22 +244,6 @@ function RegisterTechnicianPage() {
       case 6:
         if ((draft.services ?? []).length === 0) errs.push("Select at least one service you offer.");
         break;
-      case 7:
-        (draft.qualifications ?? []).forEach((q: any, i: number) => {
-          if (!q?.qualification) errs.push(`Qualification ${i + 1}: select a qualification.`);
-          if (q?.year && (Number(q.year) < 1950 || Number(q.year) > new Date().getFullYear()))
-            errs.push(`Qualification ${i + 1}: enter a valid year.`);
-        });
-        break;
-      case 8:
-        (draft.certifications ?? []).forEach((c: any, i: number) => {
-          if (!String(c?.name ?? "").trim()) errs.push(`Certification ${i + 1}: add the certification name.`);
-          if (!String(c?.issuingOrganization ?? "").trim())
-            errs.push(`Certification ${i + 1}: add the issuing organization.`);
-          if (c?.issueDate && c?.expiryDate && c.expiryDate < c.issueDate)
-            errs.push(`Certification ${i + 1}: expiry date cannot be before the issue date.`);
-        });
-        break;
       case 9: {
         const areas = draft.serviceAreas ?? [];
         if (areas.length === 0) errs.push("Add at least one service area.");
@@ -268,11 +252,10 @@ function RegisterTechnicianPage() {
           if (!a?.city) errs.push(`Service area ${i + 1}: select a city.`);
           if (digits(a?.pincode).length !== 6) errs.push(`Service area ${i + 1}: enter a valid 6-digit pincode.`);
         });
-        break;
-      }
-      case 10:
         if ((draft.serviceModes ?? []).length === 0) errs.push("Select at least one service mode.");
         break;
+      }
+
       case 11: {
         if ((draft.availability?.days ?? []).length === 0) errs.push("Select your working days.");
         const from = draft.availability?.from;
