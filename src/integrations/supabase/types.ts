@@ -103,6 +103,112 @@ export type Database = {
           },
         ]
       }
+      gst_bills: {
+        Row: {
+          bill_date: string
+          bill_number: string
+          created_at: string
+          customer_address: string | null
+          customer_gstin: string | null
+          customer_id: string
+          customer_name: string | null
+          firm_address: string | null
+          firm_email: string | null
+          firm_gstin: string | null
+          firm_name: string
+          firm_phone: string | null
+          id: string
+          invoice_id: string | null
+          items: Json
+          notes: string | null
+          pdf_path: string | null
+          place_of_supply: string | null
+          repair_request_id: string
+          subtotal: number
+          tax_amount: number
+          tax_mode: string
+          technician_id: string
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          bill_date?: string
+          bill_number: string
+          created_at?: string
+          customer_address?: string | null
+          customer_gstin?: string | null
+          customer_id: string
+          customer_name?: string | null
+          firm_address?: string | null
+          firm_email?: string | null
+          firm_gstin?: string | null
+          firm_name: string
+          firm_phone?: string | null
+          id?: string
+          invoice_id?: string | null
+          items?: Json
+          notes?: string | null
+          pdf_path?: string | null
+          place_of_supply?: string | null
+          repair_request_id: string
+          subtotal?: number
+          tax_amount?: number
+          tax_mode?: string
+          technician_id: string
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          bill_date?: string
+          bill_number?: string
+          created_at?: string
+          customer_address?: string | null
+          customer_gstin?: string | null
+          customer_id?: string
+          customer_name?: string | null
+          firm_address?: string | null
+          firm_email?: string | null
+          firm_gstin?: string | null
+          firm_name?: string
+          firm_phone?: string | null
+          id?: string
+          invoice_id?: string | null
+          items?: Json
+          notes?: string | null
+          pdf_path?: string | null
+          place_of_supply?: string | null
+          repair_request_id?: string
+          subtotal?: number
+          tax_amount?: number
+          tax_mode?: string
+          technician_id?: string
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gst_bills_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gst_bills_repair_request_id_fkey"
+            columns: ["repair_request_id"]
+            isOneToOne: true
+            referencedRelation: "repair_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gst_bills_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           amount: number

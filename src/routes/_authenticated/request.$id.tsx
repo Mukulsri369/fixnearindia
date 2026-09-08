@@ -3,7 +3,7 @@ import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, MapPin, Phone, Star, User } from "lucide-react";
+import { ArrowLeft, FileText, Loader2, MapPin, Phone, Star, User } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -171,6 +171,13 @@ function RequestDetailPage() {
                     </Button>
                   )}
                   {invoice.status === "paid" && <Badge>Paid — request closed</Badge>}
+                  {invoice.status === "paid" && (
+                    <Button asChild variant="outline">
+                      <Link to="/bill/$id" params={{ id }}>
+                        <FileText className="mr-2 h-4 w-4" /> GST bill
+                      </Link>
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
