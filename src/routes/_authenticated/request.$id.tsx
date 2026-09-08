@@ -171,6 +171,13 @@ function RequestDetailPage() {
                     </Button>
                   )}
                   {invoice.status === "paid" && <Badge>Paid — request closed</Badge>}
+                  {invoice.status === "paid" && (
+                    <Button asChild variant="outline">
+                      <Link to="/bill/$id" params={{ id }}>
+                        <FileText className="mr-2 h-4 w-4" /> GST bill
+                      </Link>
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

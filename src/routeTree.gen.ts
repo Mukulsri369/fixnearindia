@@ -27,6 +27,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAvailableJobsRouteImport } from './routes/_authenticated/available-jobs'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedRequestIdRouteImport } from './routes/_authenticated/request.$id'
+import { Route as AuthenticatedBillIdRouteImport } from './routes/_authenticated/bill.$id'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -120,6 +121,11 @@ const AuthenticatedRequestIdRoute = AuthenticatedRequestIdRouteImport.update({
   path: '/request/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBillIdRoute = AuthenticatedBillIdRouteImport.update({
+  id: '/bill/$id',
+  path: '/bill/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/requests': typeof AuthenticatedRequestsRoute
   '/technician-requests': typeof AuthenticatedTechnicianRequestsRoute
+  '/bill/$id': typeof AuthenticatedBillIdRoute
   '/request/$id': typeof AuthenticatedRequestIdRoute
 }
 export interface FileRoutesByTo {
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/requests': typeof AuthenticatedRequestsRoute
   '/technician-requests': typeof AuthenticatedTechnicianRequestsRoute
+  '/bill/$id': typeof AuthenticatedBillIdRoute
   '/request/$id': typeof AuthenticatedRequestIdRoute
 }
 export interface FileRoutesById {
@@ -178,6 +186,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/requests': typeof AuthenticatedRequestsRoute
   '/_authenticated/technician-requests': typeof AuthenticatedTechnicianRequestsRoute
+  '/_authenticated/bill/$id': typeof AuthenticatedBillIdRoute
   '/_authenticated/request/$id': typeof AuthenticatedRequestIdRoute
 }
 export interface FileRouteTypes {
@@ -199,6 +208,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/requests'
     | '/technician-requests'
+    | '/bill/$id'
     | '/request/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -218,6 +228,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/requests'
     | '/technician-requests'
+    | '/bill/$id'
     | '/request/$id'
   id:
     | '__root__'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/requests'
     | '/_authenticated/technician-requests'
+    | '/_authenticated/bill/$id'
     | '/_authenticated/request/$id'
   fileRoutesById: FileRoutesById
 }
@@ -381,6 +393,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRequestIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/bill/$id': {
+      id: '/_authenticated/bill/$id'
+      path: '/bill/$id'
+      fullPath: '/bill/$id'
+      preLoaderRoute: typeof AuthenticatedBillIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -393,6 +412,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedRequestsRoute: typeof AuthenticatedRequestsRoute
   AuthenticatedTechnicianRequestsRoute: typeof AuthenticatedTechnicianRequestsRoute
+  AuthenticatedBillIdRoute: typeof AuthenticatedBillIdRoute
   AuthenticatedRequestIdRoute: typeof AuthenticatedRequestIdRoute
 }
 
@@ -405,6 +425,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedRequestsRoute: AuthenticatedRequestsRoute,
   AuthenticatedTechnicianRequestsRoute: AuthenticatedTechnicianRequestsRoute,
+  AuthenticatedBillIdRoute: AuthenticatedBillIdRoute,
   AuthenticatedRequestIdRoute: AuthenticatedRequestIdRoute,
 }
 
