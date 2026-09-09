@@ -167,9 +167,18 @@ function TechnicianRequestsPage() {
                     )}
 
                     {assignment.status === "completed" && (
-                      <div className="rounded-lg border p-3 text-sm">
-                        <p className="font-medium">Invoice raised: ₹{Number(assignment.amount ?? 0).toFixed(2)}</p>
-                        <p className="mt-1 text-muted-foreground">{assignment.repair_notes}</p>
+                      <div className="space-y-3 rounded-lg border p-3 text-sm">
+                        <div>
+                          <p className="font-medium">Invoice raised: ₹{Number(assignment.amount ?? 0).toFixed(2)}</p>
+                          <p className="mt-1 text-muted-foreground">{assignment.repair_notes}</p>
+                        </div>
+                        {req?.id && (
+                          <Button asChild size="sm" variant="outline">
+                            <Link to="/bill/$id" params={{ id: req.id }}>
+                              <FileText className="mr-2 h-4 w-4" /> Create GST bill
+                            </Link>
+                          </Button>
+                        )}
                       </div>
                     )}
 
