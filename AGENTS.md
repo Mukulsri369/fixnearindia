@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Customer repair requests must reference an owned `customer_assets` record; this keeps each job tied to a verified asset while preserving legacy requests.

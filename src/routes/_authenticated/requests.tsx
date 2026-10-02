@@ -68,10 +68,10 @@ function RequestsPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <CardTitle className="text-lg">
-                        {request.brand} {request.model}
+                        {request.customer_assets?.name ?? [request.brand, request.model].filter(Boolean).join(" ")}
                       </CardTitle>
                       <p className="text-sm text-muted-foreground">
-                        {request.categories?.name} • {request.city} • {request.pincode}
+                        {request.customer_assets?.name ? `${[request.brand, request.model].filter(Boolean).join(" ")} • ` : ""}{request.categories?.name} • {request.city} • {request.pincode}
                       </p>
                     </div>
                     <div className="flex gap-2">
