@@ -14,6 +14,293 @@ export type Database = {
   }
   public: {
     Tables: {
+      amc_contracts: {
+        Row: {
+          amc_request_id: string
+          asset_id: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          created_at: string
+          customer_id: string
+          duration_days: number
+          ends_at: string
+          expiry_notice_sent_at: string | null
+          id: string
+          offer_id: string
+          paid_at: string
+          price: number
+          reminder_7d_sent_at: string | null
+          response_sla_hours: number
+          starts_at: string
+          status: string
+          technician_id: string
+          updated_at: string
+        }
+        Insert: {
+          amc_request_id: string
+          asset_id: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          customer_id: string
+          duration_days: number
+          ends_at: string
+          expiry_notice_sent_at?: string | null
+          id?: string
+          offer_id: string
+          paid_at: string
+          price: number
+          reminder_7d_sent_at?: string | null
+          response_sla_hours?: number
+          starts_at: string
+          status?: string
+          technician_id: string
+          updated_at?: string
+        }
+        Update: {
+          amc_request_id?: string
+          asset_id?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          customer_id?: string
+          duration_days?: number
+          ends_at?: string
+          expiry_notice_sent_at?: string | null
+          id?: string
+          offer_id?: string
+          paid_at?: string
+          price?: number
+          reminder_7d_sent_at?: string | null
+          response_sla_hours?: number
+          starts_at?: string
+          status?: string
+          technician_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "amc_contracts_amc_request_id_fkey"
+            columns: ["amc_request_id"]
+            isOneToOne: true
+            referencedRelation: "amc_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "amc_contracts_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "customer_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "amc_contracts_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: true
+            referencedRelation: "amc_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "amc_contracts_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      amc_messages: {
+        Row: {
+          amc_request_id: string
+          body: string
+          created_at: string
+          id: string
+          sender_id: string
+          sender_role: string
+          technician_id: string | null
+        }
+        Insert: {
+          amc_request_id: string
+          body: string
+          created_at?: string
+          id?: string
+          sender_id: string
+          sender_role: string
+          technician_id?: string | null
+        }
+        Update: {
+          amc_request_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+          sender_role?: string
+          technician_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "amc_messages_amc_request_id_fkey"
+            columns: ["amc_request_id"]
+            isOneToOne: false
+            referencedRelation: "amc_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "amc_messages_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      amc_offers: {
+        Row: {
+          amc_request_id: string
+          coverage_details: string
+          created_at: string
+          id: string
+          paid_at: string | null
+          price: number
+          status: string
+          technician_id: string
+          terms: string | null
+          updated_at: string
+        }
+        Insert: {
+          amc_request_id: string
+          coverage_details: string
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          price: number
+          status?: string
+          technician_id: string
+          terms?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amc_request_id?: string
+          coverage_details?: string
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          price?: number
+          status?: string
+          technician_id?: string
+          terms?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "amc_offers_amc_request_id_fkey"
+            columns: ["amc_request_id"]
+            isOneToOne: false
+            referencedRelation: "amc_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "amc_offers_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      amc_requests: {
+        Row: {
+          address: string | null
+          asset_id: string
+          category_id: string
+          city: string
+          created_at: string
+          customer_id: string
+          id: string
+          invited_technician_id: string | null
+          pincode: string
+          requested_days: number
+          selected_offer_id: string | null
+          service_notes: string
+          source_repair_request_id: string | null
+          state: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          asset_id: string
+          category_id: string
+          city: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          invited_technician_id?: string | null
+          pincode: string
+          requested_days: number
+          selected_offer_id?: string | null
+          service_notes: string
+          source_repair_request_id?: string | null
+          state?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          asset_id?: string
+          category_id?: string
+          city?: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          invited_technician_id?: string | null
+          pincode?: string
+          requested_days?: number
+          selected_offer_id?: string | null
+          service_notes?: string
+          source_repair_request_id?: string | null
+          state?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "amc_requests_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "customer_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "amc_requests_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "amc_requests_invited_technician_id_fkey"
+            columns: ["invited_technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "amc_requests_selected_offer_fkey"
+            columns: ["selected_offer_id"]
+            isOneToOne: false
+            referencedRelation: "amc_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "amc_requests_source_repair_request_id_fkey"
+            columns: ["source_repair_request_id"]
+            isOneToOne: false
+            referencedRelation: "repair_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -424,6 +711,7 @@ export type Database = {
       repair_requests: {
         Row: {
           address: string | null
+          amc_contract_id: string | null
           asset_id: string | null
           brand: string | null
           category_id: string | null
@@ -438,12 +726,14 @@ export type Database = {
           pincode: string | null
           preferred_visit_time: string | null
           priority: string | null
+          response_due_at: string | null
           state: string | null
           status: string | null
           updated_at: string
         }
         Insert: {
           address?: string | null
+          amc_contract_id?: string | null
           asset_id?: string | null
           brand?: string | null
           category_id?: string | null
@@ -458,12 +748,14 @@ export type Database = {
           pincode?: string | null
           preferred_visit_time?: string | null
           priority?: string | null
+          response_due_at?: string | null
           state?: string | null
           status?: string | null
           updated_at?: string
         }
         Update: {
           address?: string | null
+          amc_contract_id?: string | null
           asset_id?: string | null
           brand?: string | null
           category_id?: string | null
@@ -478,11 +770,19 @@ export type Database = {
           pincode?: string | null
           preferred_visit_time?: string | null
           priority?: string | null
+          response_due_at?: string | null
           state?: string | null
           status?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "repair_requests_amc_contract_id_fkey"
+            columns: ["amc_contract_id"]
+            isOneToOne: false
+            referencedRelation: "amc_contracts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "repair_requests_asset_id_fkey"
             columns: ["asset_id"]
