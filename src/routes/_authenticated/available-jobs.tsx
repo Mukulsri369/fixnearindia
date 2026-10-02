@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { RequestChat } from "@/components/RequestChat";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { INDIA_STATES, citiesForState } from "@/lib/india-locations";
-import { expressInterest, getAvailableRequests } from "@/lib/marketplace.functions";
+import { expressInterest, getAvailableRequests, postRequestMessage } from "@/lib/marketplace.functions";
 
 const ALL = "__all__";
 
@@ -40,6 +41,7 @@ function AvailableJobsPage() {
   const { data } = useSuspenseQuery(availableQueryOptions(state, city));
   const queryClient = useQueryClient();
   const doInterest = useServerFn(expressInterest);
+  const sendMessage = useServerFn(postRequestMessage);
   const [openId, setOpenId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -52,6 +54,7 @@ function AvailableJobsPage() {
       setOpenId(null);
       setMessage("");
       queryClient.invalidateQueries({ queryKey: ["available-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["request-messages", requestId] });
     } catch (err: any) {
       toast.error(err.message || "Failed to send offer");
     } finally {
@@ -153,7 +156,7 @@ function AvailableJobsPage() {
 
                   {req.alreadyInterested ? (
                     <p className="mt-4 text-sm font-medium text-primary">
-                      You've already responded — waiting for the customer to choose.
+                      Your offer was sent — you can continue the conversation below.
                     </p>
                   ) : openId === req.id ? (
                     <div className="mt-4 space-y-3">
@@ -185,6 +188,22 @@ function AvailableJobsPage() {
                       I'm interested
                     </Button>
                   )}
+
+                  <div className="mt-4">
+                    <RequestChat
+                      requestId={req.id}
+                      title="Offers & messages"
+                      canSend={req.alreadyInterested}
+                      onSend={(body) =>
+                        sendMessage({ data: { requestId: req.id, body } })
+                      }
+                    />
+                    {!req.alreadyInterested && (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Send your offer first to join this conversation.
+                      </p>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ))}
