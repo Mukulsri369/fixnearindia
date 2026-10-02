@@ -25,6 +25,7 @@ import { Route as AuthenticatedNewRequestRouteImport } from './routes/_authentic
 import { Route as AuthenticatedNearbyTechniciansRouteImport } from './routes/_authenticated/nearby-technicians'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAvailableJobsRouteImport } from './routes/_authenticated/available-jobs'
+import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedRequestIdRouteImport } from './routes/_authenticated/request.$id'
 import { Route as AuthenticatedBillIdRouteImport } from './routes/_authenticated/bill.$id'
@@ -111,6 +112,11 @@ const AuthenticatedAvailableJobsRoute =
     path: '/available-jobs',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAssetsRoute = AuthenticatedAssetsRouteImport.update({
+  id: '/assets',
+  path: '/assets',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/assets': typeof AuthenticatedAssetsRoute
   '/available-jobs': typeof AuthenticatedAvailableJobsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/nearby-technicians': typeof AuthenticatedNearbyTechniciansRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/assets': typeof AuthenticatedAssetsRoute
   '/available-jobs': typeof AuthenticatedAvailableJobsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/nearby-technicians': typeof AuthenticatedNearbyTechniciansRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/assets': typeof AuthenticatedAssetsRoute
   '/_authenticated/available-jobs': typeof AuthenticatedAvailableJobsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/nearby-technicians': typeof AuthenticatedNearbyTechniciansRoute
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/terms'
     | '/admin'
+    | '/assets'
     | '/available-jobs'
     | '/dashboard'
     | '/nearby-technicians'
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/terms'
     | '/admin'
+    | '/assets'
     | '/available-jobs'
     | '/dashboard'
     | '/nearby-technicians'
@@ -242,6 +253,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/terms'
     | '/_authenticated/admin'
+    | '/_authenticated/assets'
     | '/_authenticated/available-jobs'
     | '/_authenticated/dashboard'
     | '/_authenticated/nearby-technicians'
@@ -379,6 +391,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAvailableJobsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/assets': {
+      id: '/_authenticated/assets'
+      path: '/assets'
+      fullPath: '/assets'
+      preLoaderRoute: typeof AuthenticatedAssetsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -405,6 +424,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRoute
   AuthenticatedAvailableJobsRoute: typeof AuthenticatedAvailableJobsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedNearbyTechniciansRoute: typeof AuthenticatedNearbyTechniciansRoute
@@ -418,6 +438,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAssetsRoute: AuthenticatedAssetsRoute,
   AuthenticatedAvailableJobsRoute: AuthenticatedAvailableJobsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedNearbyTechniciansRoute: AuthenticatedNearbyTechniciansRoute,
