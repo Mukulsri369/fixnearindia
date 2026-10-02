@@ -11,9 +11,16 @@ interface RequestChatProps {
   title?: string;
   technicianId?: string | null;
   onSend: (body: string) => Promise<unknown>;
+  canSend?: boolean;
 }
 
-export function RequestChat({ requestId, title = "Messages", technicianId, onSend }: RequestChatProps) {
+export function RequestChat({
+  requestId,
+  title = "Messages",
+  technicianId,
+  onSend,
+  canSend = true,
+}: RequestChatProps) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [body, setBody] = useState("");
@@ -45,14 +52,15 @@ export function RequestChat({ requestId, title = "Messages", technicianId, onSen
 
   return (
     <div className="rounded-lg border">
-      <button
+      <Button
         type="button"
+        variant="ghost"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium hover:bg-muted/50"
+        className="h-auto w-full justify-start rounded-none px-4 py-3 text-sm font-medium"
       >
         <MessageSquare className="h-4 w-4" />
         {title}
-      </button>
+      </Button>
 
       {open && (
         <div className="space-y-3 border-t p-4">
@@ -79,11 +87,15 @@ export function RequestChat({ requestId, title = "Messages", technicianId, onSen
             </div>
           )}
 
-          <Textarea rows={2} placeholder="Write a message…" value={body} onChange={(e) => setBody(e.target.value)} />
-          <Button size="sm" onClick={handleSend} disabled={sending || body.trim().length === 0}>
-            {sending ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <Send className="mr-2 h-3 w-3" />}
-            Send
-          </Button>
+          {canSend && (
+            <>
+              <Textarea rows={2} placeholder="Write another message…" value={body} onChange={(e) => setBody(e.target.value)} />
+              <Button size="sm" onClick={handleSend} disabled={sending || body.trim().length === 0}>
+                {sending ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <Send className="mr-2 h-3 w-3" />}
+                Send message
+              </Button>
+            </>
+          )}
         </div>
       )}
     </div>
