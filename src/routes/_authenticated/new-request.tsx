@@ -4,7 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { queryOptions } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, Plus, Upload, Users, X } from "lucide-react";
+import { ArrowLeft, Box, Loader2, Plus, Upload, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { getCategories } from "@/lib/categories.functions";
 import { createRepairRequest, uploadRepairImage } from "@/lib/repairs.functions";
 import { INDIA_STATES, citiesForState } from "@/lib/india-locations";
+import { getMyAssets } from "@/lib/assets.functions";
 
 const categoriesQueryOptions = () =>
   queryOptions({
@@ -23,26 +24,41 @@ const categoriesQueryOptions = () =>
     queryFn: () => getCategories(),
   });
 
+const assetsQueryOptions = () =>
+  queryOptions({
+    queryKey: ["my-assets"],
+    queryFn: () => getMyAssets(),
+  });
+
 export const Route = createFileRoute("/_authenticated/new-request")({
   head: () => ({
     meta: [
       { title: "New Repair Request — FixNear India" },
       { name: "description", content: "Create a new repair request and get matched with nearby technicians." },
+      { property: "og:title", content: "New Repair Request — FixNear India" },
+      { property: "og:description", content: "Create a repair request for one of your registered assets." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(categoriesQueryOptions()),
+  loader: ({ context }) => Promise.all([
+    context.queryClient.ensureQueryData(categoriesQueryOptions()),
+    context.queryClient.ensureQueryData(assetsQueryOptions()),
+  ]),
   component: NewRequestPage,
 });
 
 function NewRequestPage() {
   const navigate = useNavigate();
   const { data: categories } = useSuspenseQuery(categoriesQueryOptions());
+  const { data: assets } = useSuspenseQuery(assetsQueryOptions());
   const doCreate = useServerFn(createRepairRequest);
   const doUpload = useServerFn(uploadRepairImage);
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<"choose" | "create">("choose");
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [form, setForm] = useState({
+    assetId: "",
     title: "",
     brand: "",
     model: "",
@@ -73,6 +89,7 @@ function NewRequestPage() {
     try {
       const { requestId } = await doCreate({
         data: {
+          assetId: form.assetId,
           title: form.title,
           brand: form.brand,
           model: form.model,
@@ -106,6 +123,19 @@ function NewRequestPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const selectAsset = (assetId: string) => {
+    const asset = assets.find((item) => item.id === assetId);
+    if (!asset) return;
+    setForm((current) => ({
+      ...current,
+      assetId,
+      categoryId: asset.category_id,
+      brand: asset.brand ?? "",
+      model: asset.model ?? "",
+      title: current.title || `${asset.name} repair`,
+    }));
   };
 
   return (
@@ -172,7 +202,23 @@ function NewRequestPage() {
               <CardTitle className="mt-4 text-2xl">Create a Repair Request</CardTitle>
             </CardHeader>
             <CardContent>
+              {assets.length === 0 ? (
+                <div className="py-10 text-center">
+                  <Box className="mx-auto h-10 w-10 text-muted-foreground" />
+                  <h2 className="mt-4 text-lg font-semibold">Add an asset first</h2>
+                  <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">Every repair request must be connected to one of your registered appliances or equipment.</p>
+                  <Button asChild className="mt-5"><Link to="/assets"><Plus className="mr-2 h-4 w-4" /> Add asset</Link></Button>
+                </div>
+              ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="asset">Asset</Label>
+                  <Select required value={form.assetId} onValueChange={selectAsset}>
+                    <SelectTrigger id="asset"><SelectValue placeholder="Select a registered asset" /></SelectTrigger>
+                    <SelectContent>{assets.map((asset) => <SelectItem key={asset.id} value={asset.id}>{asset.name}{asset.brand ? ` — ${asset.brand}${asset.model ? ` ${asset.model}` : ""}` : ""}</SelectItem>)}</SelectContent>
+                  </Select>
+                  <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground"><span>Only your registered assets appear here.</span><Link to="/assets" className="font-medium text-primary hover:underline">Manage assets</Link></div>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="title">Title</Label>
                   <Input
@@ -191,7 +237,7 @@ function NewRequestPage() {
                       id="brand"
                       placeholder="Samsung"
                       value={form.brand}
-                      onChange={(e) => setForm({ ...form, brand: e.target.value })}
+                      readOnly
                     />
                   </div>
                   <div className="space-y-2">
@@ -200,7 +246,7 @@ function NewRequestPage() {
                       id="model"
                       placeholder="WA70N4260SS"
                       value={form.model}
-                      onChange={(e) => setForm({ ...form, model: e.target.value })}
+                      readOnly
                     />
                   </div>
                 </div>
@@ -210,7 +256,7 @@ function NewRequestPage() {
                   <Select
                     required
                     value={form.categoryId}
-                    onValueChange={(value) => setForm({ ...form, categoryId: value })}
+                    disabled
                   >
                     <SelectTrigger id="category">
                       <SelectValue placeholder="Select a repair category" />
@@ -356,11 +402,12 @@ function NewRequestPage() {
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full" disabled={isLoading || !form.categoryId}>
+                <Button type="submit" className="w-full" disabled={isLoading || !form.assetId}>
                   {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   Create Request
                 </Button>
               </form>
+              )}
             </CardContent>
           </Card>
         </motion.div>

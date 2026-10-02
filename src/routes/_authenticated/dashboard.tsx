@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import { queryOptions } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Loader2, LogOut, User, Wrench, MapPin, Star } from "lucide-react";
+import { Box, Loader2, LogOut, User, Wrench, MapPin, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -182,6 +182,9 @@ function DashboardPage() {
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
+                  <Link to="/assets">
+                    <Button variant="outline" className="w-full"><Box className="mr-2 h-4 w-4" /> My Assets</Button>
+                  </Link>
                   <Link to="/new-request">
                     <Button className="w-full">Book a Repair</Button>
                   </Link>

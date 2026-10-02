@@ -109,10 +109,10 @@ function RequestDetailPage() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <CardTitle className="text-2xl">
-                    {request.brand} {request.model}
+                    {request.customer_assets?.name ?? [request.brand, request.model].filter(Boolean).join(" ")}
                   </CardTitle>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {request.categories?.name} • {request.city}, {request.pincode}
+                    {request.customer_assets?.name ? `${[request.brand, request.model].filter(Boolean).join(" ")} • ` : ""}{request.categories?.name} • {request.city}, {request.pincode}
                   </p>
                 </div>
                 <div className="flex flex-wrap justify-end gap-2">

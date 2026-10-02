@@ -103,6 +103,56 @@ export type Database = {
           },
         ]
       }
+      customer_assets: {
+        Row: {
+          brand: string | null
+          category_id: string
+          created_at: string
+          customer_id: string
+          id: string
+          model: string | null
+          name: string
+          notes: string | null
+          purchase_date: string | null
+          serial_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          brand?: string | null
+          category_id: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          model?: string | null
+          name: string
+          notes?: string | null
+          purchase_date?: string | null
+          serial_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          brand?: string | null
+          category_id?: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          model?: string | null
+          name?: string
+          notes?: string | null
+          purchase_date?: string | null
+          serial_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_assets_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gst_bills: {
         Row: {
           bill_date: string
@@ -374,6 +424,7 @@ export type Database = {
       repair_requests: {
         Row: {
           address: string | null
+          asset_id: string | null
           brand: string | null
           category_id: string | null
           city: string | null
@@ -393,6 +444,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          asset_id?: string | null
           brand?: string | null
           category_id?: string | null
           city?: string | null
@@ -412,6 +464,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          asset_id?: string | null
           brand?: string | null
           category_id?: string | null
           city?: string | null
@@ -430,6 +483,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "repair_requests_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "customer_assets"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "repair_requests_category_id_fkey"
             columns: ["category_id"]

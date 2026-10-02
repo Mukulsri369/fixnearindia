@@ -51,7 +51,7 @@ export const Route = createFileRoute("/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(categoriesQueryOptions()),
   errorComponent: ({ error }) => (
     <div role="alert" className="p-8 text-center text-muted-foreground">
-      {error.message}
+      {error instanceof Error ? error.message : "This page did not load."}
     </div>
   ),
   notFoundComponent: () => <div className="p-8 text-center">Page not found.</div>,

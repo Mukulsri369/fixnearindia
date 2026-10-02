@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 
 const createRepairRequestSchema = z.object({
+  assetId: z.string().uuid(),
   title: z.string().min(5).max(120),
   issueDescription: z.string().min(20).max(2000),
   brand: z.string().max(100).optional(),
@@ -21,13 +22,25 @@ export const createRepairRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => createRepairRequestSchema.parse(input))
   .handler(async ({ data, context }) => {
+    const { data: asset, error: assetError } = await context.supabase
+      .from("customer_assets")
+      .select("id, category_id, brand, model")
+      .eq("id", data.assetId)
+      .eq("customer_id", context.userId)
+      .single();
+
+    if (assetError || !asset) {
+      throw new Error("Select an asset registered to your account");
+    }
+
     const { data: request, error } = await context.supabase
       .from("repair_requests")
       .insert({
         customer_id: context.userId,
-        brand: data.brand,
-        model: data.model,
-        category_id: data.categoryId,
+        asset_id: asset.id,
+        brand: asset.brand,
+        model: asset.model,
+        category_id: asset.category_id,
         pincode: data.pincode,
         city: data.city,
         state: data.state,
@@ -48,11 +61,11 @@ export const createRepairRequest = createServerFn({ method: "POST" })
       const { notifyMatchingTechnicians } = await import("./notify.server");
       await notifyMatchingTechnicians({
         requestId: request.id,
-        categoryId: data.categoryId,
+        categoryId: asset.category_id,
         city: data.city,
         pincode: data.pincode,
-        brand: data.brand ?? null,
-        model: data.model ?? null,
+        brand: asset.brand,
+        model: asset.model,
       });
     } catch (notifyError) {
       console.error("Failed to notify technicians", notifyError);
@@ -68,7 +81,7 @@ export const getMyRepairRequests = createServerFn({ method: "GET" })
       .from("repair_requests")
       .select(
         `id, brand, model, issue_description, status, priority, city, pincode, preferred_visit_time, created_at, updated_at,
-        categories (name),
+        categories (name), customer_assets (id, name, serial_number),
         request_assignments (id, status, technicians (id, profiles (full_name)))`
       )
       .eq("customer_id", context.userId)
@@ -89,7 +102,7 @@ export const getRepairRequest = createServerFn({ method: "GET" })
       .from("repair_requests")
       .select(
         `id, brand, model, issue_description, status, priority, city, pincode, address, state, preferred_visit_time, created_at, updated_at, customer_id,
-        categories (name),
+        categories (name), customer_assets (id, name, serial_number),
         request_assignments (id, status, accepted_at, completed_at, technicians (id, experience_years, service_radius_km, profiles (full_name, phone)))`
       )
       .eq("id", data.requestId)
