@@ -1,0 +1,40 @@
+import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
+import { ArrowLeft, CalendarClock, Loader2, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AmcChat } from "@/components/AmcChat";
+import { cancelAmc, getAmcDetail, payAndActivateAmc, postAmcMessage, selectAmcOffer } from "@/lib/amc.functions";
+
+const detailQuery = (id: string) => queryOptions({ queryKey: ["amc-detail", id], queryFn: () => getAmcDetail({ data: { requestId: id } }) });
+export const Route = createFileRoute("/_authenticated/amc/$id")({
+  head: () => ({ meta: [
+    { title: "AMC Details — FixNear India" }, { name: "description", content: "Review AMC offers, coverage, status, and asset repair history." },
+    { property: "og:title", content: "AMC Details — FixNear India" }, { property: "og:description", content: "Review an asset AMC and its service history." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }), loader: ({ context, params }) => context.queryClient.ensureQueryData(detailQuery(params.id)), component: AmcDetailPage,
+});
+function daysLeft(date: string) { return Math.max(0, Math.ceil((new Date(date).getTime() - Date.now()) / 86400000)); }
+function AmcDetailPage() {
+  const { id } = useParams({ from: "/_authenticated/amc/$id" }); const { data } = useSuspenseQuery(detailQuery(id)); const client = useQueryClient();
+  const select = useServerFn(selectAmcOffer); const pay = useServerFn(payAndActivateAmc); const cancel = useServerFn(cancelAmc); const post = useServerFn(postAmcMessage); const [busy, setBusy] = useState<string | null>(null);
+  const refresh = () => { client.invalidateQueries({ queryKey: ["amc-detail", id] }); client.invalidateQueries({ queryKey: ["my-amcs"] }); client.invalidateQueries({ queryKey: ["technician-amcs"] }); };
+  const choose = async (offerId: string) => { setBusy(offerId); try { await select({ data: { requestId: id, offerId } }); toast.success("Offer selected — complete payment to activate AMC"); refresh(); } catch (error) { toast.error(error instanceof Error ? error.message : "Could not select offer"); } finally { setBusy(null); } };
+  const activate = async () => { setBusy("pay"); try { await pay({ data: { requestId: id } }); toast.success("Payment recorded — AMC is active"); refresh(); } catch (error) { toast.error(error instanceof Error ? error.message : "Could not activate AMC"); } finally { setBusy(null); } };
+  const cancelNow = async () => { if (!data.contract || !window.confirm("Cancel this AMC immediately? Future repairs will return to the open marketplace.")) return; setBusy("cancel"); try { await cancel({ data: { contractId: data.contract.id, reason: "Cancelled by customer" } }); toast.success("AMC cancelled"); refresh(); } catch (error) { toast.error(error instanceof Error ? error.message : "Could not cancel AMC"); } finally { setBusy(null); } };
+  const request = data.request; const selected = request.amc_offers?.find((offer: any) => offer.id === request.selected_offer_id);
+  return <div className="px-4 py-8 sm:px-6"><div className="mx-auto max-w-4xl"><Link to={data.isCustomer ? "/amcs" : "/technician-amcs"} className="mb-6 inline-flex items-center text-sm text-muted-foreground"><ArrowLeft className="mr-1 h-4 w-4" /> Back</Link>
+    <Card><CardHeader><div className="flex flex-wrap items-start justify-between gap-3"><div><CardTitle className="text-2xl">{request.customer_assets?.name ?? "AMC"}</CardTitle><p className="mt-1 text-sm text-muted-foreground">{[request.customer_assets?.brand, request.customer_assets?.model].filter(Boolean).join(" ")} • {request.customer_assets?.categories?.name}</p></div><Badge>{data.contract?.status ?? request.status}</Badge></div></CardHeader><CardContent className="space-y-4"><p>{request.service_notes}</p><p className="text-sm text-muted-foreground">{request.city}, {request.state} • requested for {request.requested_days} days</p>{data.contract ? <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-3"><div><p className="text-xs text-muted-foreground">Contract remaining</p><p className="font-semibold">{daysLeft(data.contract.ends_at)} days</p></div><div><p className="text-xs text-muted-foreground">Repair response SLA</p><p className="font-semibold">6 hours</p></div><div><p className="text-xs text-muted-foreground">Paid amount</p><p className="font-semibold">₹{Number(data.contract.price).toFixed(2)}</p></div><div className="sm:col-span-3 text-sm text-muted-foreground">{new Date(data.contract.starts_at).toLocaleDateString()} — {new Date(data.contract.ends_at).toLocaleDateString()} • {data.contract.technicians?.profiles?.full_name}</div></div> : null}
+      {data.isCustomer && request.status === "selected" && selected ? <div className="rounded-lg border p-4"><p className="font-medium">Selected offer: ₹{Number(selected.price).toFixed(2)}</p><p className="mt-1 text-sm text-muted-foreground">{selected.coverage_details}</p><Button className="mt-4" disabled={busy === "pay"} onClick={activate}>{busy === "pay" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Pay & activate AMC</Button></div> : null}
+      {data.isCustomer && data.contract?.status === "active" ? <Button variant="destructive" disabled={busy === "cancel"} onClick={cancelNow}>Cancel AMC now</Button> : null}
+      {data.isCustomer && ["expired", "cancelled"].includes(data.contract?.status ?? request.status) ? <Button asChild><Link to="/new-amc" search={{ assetId: request.asset_id }}>Reactivate AMC</Link></Button> : null}
+      <AmcChat requestId={id} onSend={(body) => post({ data: { requestId: id, body } })} />
+    </CardContent></Card>
+    {data.isCustomer && request.status === "open" ? <section className="mt-8"><h2 className="text-xl font-semibold">Technician offers</h2>{request.amc_offers?.length ? <div className="mt-4 space-y-3">{request.amc_offers.map((offer: any) => <Card key={offer.id}><CardContent className="p-4"><div className="flex flex-wrap justify-between gap-3"><div><p className="font-semibold">{offer.technicians?.profiles?.full_name ?? offer.technicians?.business_name}</p><p className="text-2xl font-bold">₹{Number(offer.price).toFixed(2)}</p><p className="mt-2 text-sm">{offer.coverage_details}</p>{offer.terms ? <p className="mt-1 text-sm text-muted-foreground">{offer.terms}</p> : null}</div><Button disabled={busy === offer.id} onClick={() => choose(offer.id)}>{busy === offer.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShieldCheck className="mr-2 h-4 w-4" />}Choose offer</Button></div></CardContent></Card>)}</div> : <p className="mt-3 text-sm text-muted-foreground">Waiting for technician offers.</p>}</section> : null}
+    {data.contract ? <section className="mt-8"><h2 className="flex items-center gap-2 text-xl font-semibold"><CalendarClock className="h-5 w-5" /> Repair history for this AMC asset</h2>{data.repairs.length ? <div className="mt-4 space-y-3">{data.repairs.map((repair: any) => <Link key={repair.id} to="/request/$id" params={{ id: repair.id }} className="flex items-center justify-between rounded-lg border bg-card p-4"><div><p className="font-medium">{repair.issue_description}</p><p className="text-sm text-muted-foreground">{new Date(repair.created_at).toLocaleDateString()}{repair.response_due_at ? ` • response due ${new Date(repair.response_due_at).toLocaleString()}` : ""}</p></div><Badge variant="secondary">{repair.status}</Badge></Link>)}</div> : <p className="mt-3 text-sm text-muted-foreground">No repair requests created under this AMC yet.</p>}</section> : null}
+  </div></div>;
+}

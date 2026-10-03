@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Customer repair requests must reference an owned `customer_assets` record; this keeps each job tied to a verified asset while preserving legacy requests.
+- AMC lifecycle mutations use authenticated server functions with privileged writes only after ownership or technician checks; this keeps multi-row offer, payment, cancellation, and assignment transitions consistent.

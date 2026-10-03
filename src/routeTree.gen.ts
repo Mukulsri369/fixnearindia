@@ -19,16 +19,20 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTechnicianRequestsRouteImport } from './routes/_authenticated/technician-requests'
+import { Route as AuthenticatedTechnicianAmcsRouteImport } from './routes/_authenticated/technician-amcs'
 import { Route as AuthenticatedRequestsRouteImport } from './routes/_authenticated/requests'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedNewRequestRouteImport } from './routes/_authenticated/new-request'
+import { Route as AuthenticatedNewAmcRouteImport } from './routes/_authenticated/new-amc'
 import { Route as AuthenticatedNearbyTechniciansRouteImport } from './routes/_authenticated/nearby-technicians'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAvailableJobsRouteImport } from './routes/_authenticated/available-jobs'
 import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
+import { Route as AuthenticatedAmcsRouteImport } from './routes/_authenticated/amcs'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedRequestIdRouteImport } from './routes/_authenticated/request.$id'
 import { Route as AuthenticatedBillIdRouteImport } from './routes/_authenticated/bill.$id'
+import { Route as AuthenticatedAmcIdRouteImport } from './routes/_authenticated/amc.$id'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -80,6 +84,12 @@ const AuthenticatedTechnicianRequestsRoute =
     path: '/technician-requests',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTechnicianAmcsRoute =
+  AuthenticatedTechnicianAmcsRouteImport.update({
+    id: '/technician-amcs',
+    path: '/technician-amcs',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedRequestsRoute = AuthenticatedRequestsRouteImport.update({
   id: '/requests',
   path: '/requests',
@@ -93,6 +103,11 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
 const AuthenticatedNewRequestRoute = AuthenticatedNewRequestRouteImport.update({
   id: '/new-request',
   path: '/new-request',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedNewAmcRoute = AuthenticatedNewAmcRouteImport.update({
+  id: '/new-amc',
+  path: '/new-amc',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedNearbyTechniciansRoute =
@@ -117,6 +132,11 @@ const AuthenticatedAssetsRoute = AuthenticatedAssetsRouteImport.update({
   path: '/assets',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAmcsRoute = AuthenticatedAmcsRouteImport.update({
+  id: '/amcs',
+  path: '/amcs',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -132,6 +152,11 @@ const AuthenticatedBillIdRoute = AuthenticatedBillIdRouteImport.update({
   path: '/bill/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAmcIdRoute = AuthenticatedAmcIdRouteImport.update({
+  id: '/amc/$id',
+  path: '/amc/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -143,14 +168,18 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/amcs': typeof AuthenticatedAmcsRoute
   '/assets': typeof AuthenticatedAssetsRoute
   '/available-jobs': typeof AuthenticatedAvailableJobsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/nearby-technicians': typeof AuthenticatedNearbyTechniciansRoute
+  '/new-amc': typeof AuthenticatedNewAmcRoute
   '/new-request': typeof AuthenticatedNewRequestRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/requests': typeof AuthenticatedRequestsRoute
+  '/technician-amcs': typeof AuthenticatedTechnicianAmcsRoute
   '/technician-requests': typeof AuthenticatedTechnicianRequestsRoute
+  '/amc/$id': typeof AuthenticatedAmcIdRoute
   '/bill/$id': typeof AuthenticatedBillIdRoute
   '/request/$id': typeof AuthenticatedRequestIdRoute
 }
@@ -164,14 +193,18 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/amcs': typeof AuthenticatedAmcsRoute
   '/assets': typeof AuthenticatedAssetsRoute
   '/available-jobs': typeof AuthenticatedAvailableJobsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/nearby-technicians': typeof AuthenticatedNearbyTechniciansRoute
+  '/new-amc': typeof AuthenticatedNewAmcRoute
   '/new-request': typeof AuthenticatedNewRequestRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/requests': typeof AuthenticatedRequestsRoute
+  '/technician-amcs': typeof AuthenticatedTechnicianAmcsRoute
   '/technician-requests': typeof AuthenticatedTechnicianRequestsRoute
+  '/amc/$id': typeof AuthenticatedAmcIdRoute
   '/bill/$id': typeof AuthenticatedBillIdRoute
   '/request/$id': typeof AuthenticatedRequestIdRoute
 }
@@ -187,14 +220,18 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/amcs': typeof AuthenticatedAmcsRoute
   '/_authenticated/assets': typeof AuthenticatedAssetsRoute
   '/_authenticated/available-jobs': typeof AuthenticatedAvailableJobsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/nearby-technicians': typeof AuthenticatedNearbyTechniciansRoute
+  '/_authenticated/new-amc': typeof AuthenticatedNewAmcRoute
   '/_authenticated/new-request': typeof AuthenticatedNewRequestRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/requests': typeof AuthenticatedRequestsRoute
+  '/_authenticated/technician-amcs': typeof AuthenticatedTechnicianAmcsRoute
   '/_authenticated/technician-requests': typeof AuthenticatedTechnicianRequestsRoute
+  '/_authenticated/amc/$id': typeof AuthenticatedAmcIdRoute
   '/_authenticated/bill/$id': typeof AuthenticatedBillIdRoute
   '/_authenticated/request/$id': typeof AuthenticatedRequestIdRoute
 }
@@ -210,14 +247,18 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/terms'
     | '/admin'
+    | '/amcs'
     | '/assets'
     | '/available-jobs'
     | '/dashboard'
     | '/nearby-technicians'
+    | '/new-amc'
     | '/new-request'
     | '/profile'
     | '/requests'
+    | '/technician-amcs'
     | '/technician-requests'
+    | '/amc/$id'
     | '/bill/$id'
     | '/request/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -231,14 +272,18 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/terms'
     | '/admin'
+    | '/amcs'
     | '/assets'
     | '/available-jobs'
     | '/dashboard'
     | '/nearby-technicians'
+    | '/new-amc'
     | '/new-request'
     | '/profile'
     | '/requests'
+    | '/technician-amcs'
     | '/technician-requests'
+    | '/amc/$id'
     | '/bill/$id'
     | '/request/$id'
   id:
@@ -253,14 +298,18 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/terms'
     | '/_authenticated/admin'
+    | '/_authenticated/amcs'
     | '/_authenticated/assets'
     | '/_authenticated/available-jobs'
     | '/_authenticated/dashboard'
     | '/_authenticated/nearby-technicians'
+    | '/_authenticated/new-amc'
     | '/_authenticated/new-request'
     | '/_authenticated/profile'
     | '/_authenticated/requests'
+    | '/_authenticated/technician-amcs'
     | '/_authenticated/technician-requests'
+    | '/_authenticated/amc/$id'
     | '/_authenticated/bill/$id'
     | '/_authenticated/request/$id'
   fileRoutesById: FileRoutesById
@@ -349,6 +398,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTechnicianRequestsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/technician-amcs': {
+      id: '/_authenticated/technician-amcs'
+      path: '/technician-amcs'
+      fullPath: '/technician-amcs'
+      preLoaderRoute: typeof AuthenticatedTechnicianAmcsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/requests': {
       id: '/_authenticated/requests'
       path: '/requests'
@@ -368,6 +424,13 @@ declare module '@tanstack/react-router' {
       path: '/new-request'
       fullPath: '/new-request'
       preLoaderRoute: typeof AuthenticatedNewRequestRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/new-amc': {
+      id: '/_authenticated/new-amc'
+      path: '/new-amc'
+      fullPath: '/new-amc'
+      preLoaderRoute: typeof AuthenticatedNewAmcRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/nearby-technicians': {
@@ -398,6 +461,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssetsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/amcs': {
+      id: '/_authenticated/amcs'
+      path: '/amcs'
+      fullPath: '/amcs'
+      preLoaderRoute: typeof AuthenticatedAmcsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -419,33 +489,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBillIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/amc/$id': {
+      id: '/_authenticated/amc/$id'
+      path: '/amc/$id'
+      fullPath: '/amc/$id'
+      preLoaderRoute: typeof AuthenticatedAmcIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAmcsRoute: typeof AuthenticatedAmcsRoute
   AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRoute
   AuthenticatedAvailableJobsRoute: typeof AuthenticatedAvailableJobsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedNearbyTechniciansRoute: typeof AuthenticatedNearbyTechniciansRoute
+  AuthenticatedNewAmcRoute: typeof AuthenticatedNewAmcRoute
   AuthenticatedNewRequestRoute: typeof AuthenticatedNewRequestRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedRequestsRoute: typeof AuthenticatedRequestsRoute
+  AuthenticatedTechnicianAmcsRoute: typeof AuthenticatedTechnicianAmcsRoute
   AuthenticatedTechnicianRequestsRoute: typeof AuthenticatedTechnicianRequestsRoute
+  AuthenticatedAmcIdRoute: typeof AuthenticatedAmcIdRoute
   AuthenticatedBillIdRoute: typeof AuthenticatedBillIdRoute
   AuthenticatedRequestIdRoute: typeof AuthenticatedRequestIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAmcsRoute: AuthenticatedAmcsRoute,
   AuthenticatedAssetsRoute: AuthenticatedAssetsRoute,
   AuthenticatedAvailableJobsRoute: AuthenticatedAvailableJobsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedNearbyTechniciansRoute: AuthenticatedNearbyTechniciansRoute,
+  AuthenticatedNewAmcRoute: AuthenticatedNewAmcRoute,
   AuthenticatedNewRequestRoute: AuthenticatedNewRequestRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedRequestsRoute: AuthenticatedRequestsRoute,
+  AuthenticatedTechnicianAmcsRoute: AuthenticatedTechnicianAmcsRoute,
   AuthenticatedTechnicianRequestsRoute: AuthenticatedTechnicianRequestsRoute,
+  AuthenticatedAmcIdRoute: AuthenticatedAmcIdRoute,
   AuthenticatedBillIdRoute: AuthenticatedBillIdRoute,
   AuthenticatedRequestIdRoute: AuthenticatedRequestIdRoute,
 }

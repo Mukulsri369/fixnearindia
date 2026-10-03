@@ -80,3 +80,23 @@ export async function notifyTechnicianSelected(technicianId: string, requestId: 
     data: { repair_request_id: requestId },
   });
 }
+
+export async function notifyAmcOpportunity(info: { requestId: string; categoryId: string; city: string; pincode: string; assetName: string; invitedTechnicianId: string | null }) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  let query = supabaseAdmin.from("technicians").select("id, city, pincode, profile_id, technician_categories!inner(category_id)")
+    .eq("is_approved", true).eq("technician_categories.category_id", info.categoryId);
+  if (info.invitedTechnicianId) query = query.eq("id", info.invitedTechnicianId);
+  const { data: technicians } = await query;
+  const prefix = info.pincode.slice(0, 3);
+  const matches = (technicians ?? []).filter((technician: any) => info.invitedTechnicianId || technician.city?.toLowerCase() === info.city.toLowerCase() || technician.pincode?.startsWith(prefix));
+  if (!matches.length) return;
+  const { data: profiles } = await supabaseAdmin.from("profiles").select("id, user_id").in("id", matches.map((technician: any) => technician.profile_id));
+  if (!profiles?.length) return;
+  await supabaseAdmin.from("notifications").insert(profiles.map((profile) => ({
+    user_id: profile.user_id,
+    type: info.invitedTechnicianId ? "amc_invitation" : "new_amc_request",
+    title: info.invitedTechnicianId ? "Customer invited you for an AMC" : "New AMC opportunity",
+    body: `${info.assetName} needs AMC coverage in ${info.city}.`,
+    data: { amc_request_id: info.requestId },
+  })));
+}
