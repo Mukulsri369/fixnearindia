@@ -9,59 +9,34 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AboutRouteImport } from './routes/about'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as ContactRouteImport } from './routes/contact'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as RegisterTechnicianRouteImport } from './routes/register-technician'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TermsRouteImport } from './routes/terms'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
-import { Route as AuthenticatedAvailableJobsRouteImport } from './routes/_authenticated/available-jobs'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedNearbyTechniciansRouteImport } from './routes/_authenticated/nearby-technicians'
-import { Route as AuthenticatedNewRequestRouteImport } from './routes/_authenticated/new-request'
-import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedRequestsRouteImport } from './routes/_authenticated/requests'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RegisterTechnicianRouteImport } from './routes/register-technician'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTechnicianRequestsRouteImport } from './routes/_authenticated/technician-requests'
-import { Route as AuthenticatedBillIdRouteImport } from './routes/_authenticated/bill.$id'
+import { Route as AuthenticatedTechnicianAmcsRouteImport } from './routes/_authenticated/technician-amcs'
+import { Route as AuthenticatedRequestsRouteImport } from './routes/_authenticated/requests'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedNewRequestRouteImport } from './routes/_authenticated/new-request'
+import { Route as AuthenticatedNewAmcRouteImport } from './routes/_authenticated/new-amc'
+import { Route as AuthenticatedNearbyTechniciansRouteImport } from './routes/_authenticated/nearby-technicians'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedAvailableJobsRouteImport } from './routes/_authenticated/available-jobs'
+import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
+import { Route as AuthenticatedAmcsRouteImport } from './routes/_authenticated/amcs'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedRequestIdRouteImport } from './routes/_authenticated/request.$id'
+import { Route as AuthenticatedBillIdRouteImport } from './routes/_authenticated/bill.$id'
+import { Route as AuthenticatedAmcIdRouteImport } from './routes/_authenticated/amc.$id'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RegisterTechnicianRoute = RegisterTechnicianRouteImport.update({
-  id: '/register-technician',
-  path: '/register-technician',
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -69,30 +44,70 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
+const RegisterTechnicianRoute = RegisterTechnicianRouteImport.update({
+  id: '/register-technician',
+  path: '/register-technician',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAssetsRoute = AuthenticatedAssetsRouteImport.update({
-  id: '/assets',
-  path: '/assets',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAvailableJobsRoute =
-  AuthenticatedAvailableJobsRouteImport.update({
-    id: '/available-jobs',
-    path: '/available-jobs',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedTechnicianRequestsRoute =
+  AuthenticatedTechnicianRequestsRouteImport.update({
+    id: '/technician-requests',
+    path: '/technician-requests',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const AuthenticatedTechnicianAmcsRoute =
+  AuthenticatedTechnicianAmcsRouteImport.update({
+    id: '/technician-amcs',
+    path: '/technician-amcs',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedRequestsRoute = AuthenticatedRequestsRouteImport.update({
+  id: '/requests',
+  path: '/requests',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedNewRequestRoute = AuthenticatedNewRequestRouteImport.update({
+  id: '/new-request',
+  path: '/new-request',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedNewAmcRoute = AuthenticatedNewAmcRouteImport.update({
+  id: '/new-amc',
+  path: '/new-amc',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedNearbyTechniciansRoute =
@@ -101,35 +116,45 @@ const AuthenticatedNearbyTechniciansRoute =
     path: '/nearby-technicians',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedNewRequestRoute = AuthenticatedNewRequestRouteImport.update({
-  id: '/new-request',
-  path: '/new-request',
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedRequestsRoute = AuthenticatedRequestsRouteImport.update({
-  id: '/requests',
-  path: '/requests',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedTechnicianRequestsRoute =
-  AuthenticatedTechnicianRequestsRouteImport.update({
-    id: '/technician-requests',
-    path: '/technician-requests',
+const AuthenticatedAvailableJobsRoute =
+  AuthenticatedAvailableJobsRouteImport.update({
+    id: '/available-jobs',
+    path: '/available-jobs',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedBillIdRoute = AuthenticatedBillIdRouteImport.update({
-  id: '/bill/$id',
-  path: '/bill/$id',
+const AuthenticatedAssetsRoute = AuthenticatedAssetsRouteImport.update({
+  id: '/assets',
+  path: '/assets',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAmcsRoute = AuthenticatedAmcsRouteImport.update({
+  id: '/amcs',
+  path: '/amcs',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedRequestIdRoute = AuthenticatedRequestIdRouteImport.update({
   id: '/request/$id',
   path: '/request/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBillIdRoute = AuthenticatedBillIdRouteImport.update({
+  id: '/bill/$id',
+  path: '/bill/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAmcIdRoute = AuthenticatedAmcIdRouteImport.update({
+  id: '/amc/$id',
+  path: '/amc/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
@@ -143,14 +168,18 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/amcs': typeof AuthenticatedAmcsRoute
   '/assets': typeof AuthenticatedAssetsRoute
   '/available-jobs': typeof AuthenticatedAvailableJobsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/nearby-technicians': typeof AuthenticatedNearbyTechniciansRoute
+  '/new-amc': typeof AuthenticatedNewAmcRoute
   '/new-request': typeof AuthenticatedNewRequestRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/requests': typeof AuthenticatedRequestsRoute
+  '/technician-amcs': typeof AuthenticatedTechnicianAmcsRoute
   '/technician-requests': typeof AuthenticatedTechnicianRequestsRoute
+  '/amc/$id': typeof AuthenticatedAmcIdRoute
   '/bill/$id': typeof AuthenticatedBillIdRoute
   '/request/$id': typeof AuthenticatedRequestIdRoute
 }
@@ -164,14 +193,18 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/amcs': typeof AuthenticatedAmcsRoute
   '/assets': typeof AuthenticatedAssetsRoute
   '/available-jobs': typeof AuthenticatedAvailableJobsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/nearby-technicians': typeof AuthenticatedNearbyTechniciansRoute
+  '/new-amc': typeof AuthenticatedNewAmcRoute
   '/new-request': typeof AuthenticatedNewRequestRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/requests': typeof AuthenticatedRequestsRoute
+  '/technician-amcs': typeof AuthenticatedTechnicianAmcsRoute
   '/technician-requests': typeof AuthenticatedTechnicianRequestsRoute
+  '/amc/$id': typeof AuthenticatedAmcIdRoute
   '/bill/$id': typeof AuthenticatedBillIdRoute
   '/request/$id': typeof AuthenticatedRequestIdRoute
 }
@@ -187,14 +220,18 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/amcs': typeof AuthenticatedAmcsRoute
   '/_authenticated/assets': typeof AuthenticatedAssetsRoute
   '/_authenticated/available-jobs': typeof AuthenticatedAvailableJobsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/nearby-technicians': typeof AuthenticatedNearbyTechniciansRoute
+  '/_authenticated/new-amc': typeof AuthenticatedNewAmcRoute
   '/_authenticated/new-request': typeof AuthenticatedNewRequestRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/requests': typeof AuthenticatedRequestsRoute
+  '/_authenticated/technician-amcs': typeof AuthenticatedTechnicianAmcsRoute
   '/_authenticated/technician-requests': typeof AuthenticatedTechnicianRequestsRoute
+  '/_authenticated/amc/$id': typeof AuthenticatedAmcIdRoute
   '/_authenticated/bill/$id': typeof AuthenticatedBillIdRoute
   '/_authenticated/request/$id': typeof AuthenticatedRequestIdRoute
 }
@@ -210,14 +247,18 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/terms'
     | '/admin'
+    | '/amcs'
     | '/assets'
     | '/available-jobs'
     | '/dashboard'
     | '/nearby-technicians'
+    | '/new-amc'
     | '/new-request'
     | '/profile'
     | '/requests'
+    | '/technician-amcs'
     | '/technician-requests'
+    | '/amc/$id'
     | '/bill/$id'
     | '/request/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -231,14 +272,18 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/terms'
     | '/admin'
+    | '/amcs'
     | '/assets'
     | '/available-jobs'
     | '/dashboard'
     | '/nearby-technicians'
+    | '/new-amc'
     | '/new-request'
     | '/profile'
     | '/requests'
+    | '/technician-amcs'
     | '/technician-requests'
+    | '/amc/$id'
     | '/bill/$id'
     | '/request/$id'
   id:
@@ -253,14 +298,18 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/terms'
     | '/_authenticated/admin'
+    | '/_authenticated/amcs'
     | '/_authenticated/assets'
     | '/_authenticated/available-jobs'
     | '/_authenticated/dashboard'
     | '/_authenticated/nearby-technicians'
+    | '/_authenticated/new-amc'
     | '/_authenticated/new-request'
     | '/_authenticated/profile'
     | '/_authenticated/requests'
+    | '/_authenticated/technician-amcs'
     | '/_authenticated/technician-requests'
+    | '/_authenticated/amc/$id'
     | '/_authenticated/bill/$id'
     | '/_authenticated/request/$id'
   fileRoutesById: FileRoutesById
@@ -279,53 +328,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/register-technician': {
-      id: '/register-technician'
-      path: '/register-technician'
-      fullPath: '/register-technician'
-      preLoaderRoute: typeof RegisterTechnicianRouteImport
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -335,60 +342,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
+    '/register-technician': {
+      id: '/register-technician'
+      path: '/register-technician'
+      fullPath: '/register-technician'
+      preLoaderRoute: typeof RegisterTechnicianRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/technician-requests': {
+      id: '/_authenticated/technician-requests'
+      path: '/technician-requests'
+      fullPath: '/technician-requests'
+      preLoaderRoute: typeof AuthenticatedTechnicianRequestsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/assets': {
-      id: '/_authenticated/assets'
-      path: '/assets'
-      fullPath: '/assets'
-      preLoaderRoute: typeof AuthenticatedAssetsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/available-jobs': {
-      id: '/_authenticated/available-jobs'
-      path: '/available-jobs'
-      fullPath: '/available-jobs'
-      preLoaderRoute: typeof AuthenticatedAvailableJobsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/nearby-technicians': {
-      id: '/_authenticated/nearby-technicians'
-      path: '/nearby-technicians'
-      fullPath: '/nearby-technicians'
-      preLoaderRoute: typeof AuthenticatedNearbyTechniciansRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/new-request': {
-      id: '/_authenticated/new-request'
-      path: '/new-request'
-      fullPath: '/new-request'
-      preLoaderRoute: typeof AuthenticatedNewRequestRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/profile': {
-      id: '/_authenticated/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+    '/_authenticated/technician-amcs': {
+      id: '/_authenticated/technician-amcs'
+      path: '/technician-amcs'
+      fullPath: '/technician-amcs'
+      preLoaderRoute: typeof AuthenticatedTechnicianAmcsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/requests': {
@@ -398,18 +412,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRequestsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/technician-requests': {
-      id: '/_authenticated/technician-requests'
-      path: '/technician-requests'
-      fullPath: '/technician-requests'
-      preLoaderRoute: typeof AuthenticatedTechnicianRequestsRouteImport
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/bill/$id': {
-      id: '/_authenticated/bill/$id'
-      path: '/bill/$id'
-      fullPath: '/bill/$id'
-      preLoaderRoute: typeof AuthenticatedBillIdRouteImport
+    '/_authenticated/new-request': {
+      id: '/_authenticated/new-request'
+      path: '/new-request'
+      fullPath: '/new-request'
+      preLoaderRoute: typeof AuthenticatedNewRequestRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/new-amc': {
+      id: '/_authenticated/new-amc'
+      path: '/new-amc'
+      fullPath: '/new-amc'
+      preLoaderRoute: typeof AuthenticatedNewAmcRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/nearby-technicians': {
+      id: '/_authenticated/nearby-technicians'
+      path: '/nearby-technicians'
+      fullPath: '/nearby-technicians'
+      preLoaderRoute: typeof AuthenticatedNearbyTechniciansRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/available-jobs': {
+      id: '/_authenticated/available-jobs'
+      path: '/available-jobs'
+      fullPath: '/available-jobs'
+      preLoaderRoute: typeof AuthenticatedAvailableJobsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assets': {
+      id: '/_authenticated/assets'
+      path: '/assets'
+      fullPath: '/assets'
+      preLoaderRoute: typeof AuthenticatedAssetsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/amcs': {
+      id: '/_authenticated/amcs'
+      path: '/amcs'
+      fullPath: '/amcs'
+      preLoaderRoute: typeof AuthenticatedAmcsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/request/$id': {
@@ -419,33 +482,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRequestIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/bill/$id': {
+      id: '/_authenticated/bill/$id'
+      path: '/bill/$id'
+      fullPath: '/bill/$id'
+      preLoaderRoute: typeof AuthenticatedBillIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/amc/$id': {
+      id: '/_authenticated/amc/$id'
+      path: '/amc/$id'
+      fullPath: '/amc/$id'
+      preLoaderRoute: typeof AuthenticatedAmcIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAmcsRoute: typeof AuthenticatedAmcsRoute
   AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRoute
   AuthenticatedAvailableJobsRoute: typeof AuthenticatedAvailableJobsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedNearbyTechniciansRoute: typeof AuthenticatedNearbyTechniciansRoute
+  AuthenticatedNewAmcRoute: typeof AuthenticatedNewAmcRoute
   AuthenticatedNewRequestRoute: typeof AuthenticatedNewRequestRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedRequestsRoute: typeof AuthenticatedRequestsRoute
+  AuthenticatedTechnicianAmcsRoute: typeof AuthenticatedTechnicianAmcsRoute
   AuthenticatedTechnicianRequestsRoute: typeof AuthenticatedTechnicianRequestsRoute
+  AuthenticatedAmcIdRoute: typeof AuthenticatedAmcIdRoute
   AuthenticatedBillIdRoute: typeof AuthenticatedBillIdRoute
   AuthenticatedRequestIdRoute: typeof AuthenticatedRequestIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAmcsRoute: AuthenticatedAmcsRoute,
   AuthenticatedAssetsRoute: AuthenticatedAssetsRoute,
   AuthenticatedAvailableJobsRoute: AuthenticatedAvailableJobsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedNearbyTechniciansRoute: AuthenticatedNearbyTechniciansRoute,
+  AuthenticatedNewAmcRoute: AuthenticatedNewAmcRoute,
   AuthenticatedNewRequestRoute: AuthenticatedNewRequestRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedRequestsRoute: AuthenticatedRequestsRoute,
+  AuthenticatedTechnicianAmcsRoute: AuthenticatedTechnicianAmcsRoute,
   AuthenticatedTechnicianRequestsRoute: AuthenticatedTechnicianRequestsRoute,
+  AuthenticatedAmcIdRoute: AuthenticatedAmcIdRoute,
   AuthenticatedBillIdRoute: AuthenticatedBillIdRoute,
   AuthenticatedRequestIdRoute: AuthenticatedRequestIdRoute,
 }
