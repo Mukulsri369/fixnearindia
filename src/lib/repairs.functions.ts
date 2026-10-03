@@ -33,7 +33,21 @@ export const createRepairRequest = createServerFn({ method: "POST" })
       throw new Error("Select an asset registered to your account");
     }
 
-    const { data: request, error } = await context.supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.rpc("process_amc_expiry_and_reminders" as never).catch(() => undefined);
+    const { data: activeAmc } = await supabaseAdmin
+      .from("amc_contracts")
+      .select("id, technician_id, response_sla_hours")
+      .eq("asset_id", asset.id)
+      .eq("customer_id", context.userId)
+      .eq("status", "active")
+      .gt("ends_at", new Date().toISOString())
+      .maybeSingle();
+    const responseDueAt = activeAmc
+      ? new Date(Date.now() + activeAmc.response_sla_hours * 60 * 60 * 1000).toISOString()
+      : null;
+
+    const { data: request, error } = await supabaseAdmin
       .from("repair_requests")
       .insert({
         customer_id: context.userId,
@@ -48,13 +62,32 @@ export const createRepairRequest = createServerFn({ method: "POST" })
         issue_description: data.issueDescription,
         preferred_visit_time: data.preferredVisitTime,
         priority: data.priority,
-        status: "open",
+        status: activeAmc ? "assigned" : "open",
+        amc_contract_id: activeAmc?.id ?? null,
+        response_due_at: responseDueAt,
       })
       .select("id")
       .single();
 
     if (error || !request) {
       throw new Error(`Failed to create repair request: ${error?.message ?? "unknown"}`);
+    }
+
+    if (activeAmc) {
+      const { error: assignmentError } = await supabaseAdmin.from("request_assignments").insert({
+        repair_request_id: request.id,
+        technician_id: activeAmc.technician_id,
+        status: "accepted",
+        accepted_at: new Date().toISOString(),
+      });
+      if (assignmentError) throw new Error(`Failed to assign your AMC technician: ${assignmentError.message}`);
+      try {
+        const { notifyTechnicianSelected } = await import("./notify.server");
+        await notifyTechnicianSelected(activeAmc.technician_id, request.id);
+      } catch (notifyError) {
+        console.error("Failed to notify AMC technician", notifyError);
+      }
+      return { requestId: request.id, amcAssigned: true };
     }
 
     try {
@@ -71,7 +104,7 @@ export const createRepairRequest = createServerFn({ method: "POST" })
       console.error("Failed to notify technicians", notifyError);
     }
 
-    return { requestId: request.id };
+    return { requestId: request.id, amcAssigned: false };
   });
 
 export const getMyRepairRequests = createServerFn({ method: "GET" })
@@ -101,7 +134,7 @@ export const getRepairRequest = createServerFn({ method: "GET" })
     const { data: request, error } = await context.supabase
       .from("repair_requests")
       .select(
-        `id, brand, model, issue_description, status, priority, city, pincode, address, state, preferred_visit_time, created_at, updated_at, customer_id,
+        `id, asset_id, amc_contract_id, response_due_at, brand, model, issue_description, status, priority, city, pincode, address, state, preferred_visit_time, created_at, updated_at, customer_id,
         categories (name), customer_assets (id, name, serial_number),
         request_assignments (id, status, accepted_at, completed_at, technicians (id, experience_years, service_radius_km, profiles (full_name, phone)))`
       )
@@ -236,7 +269,7 @@ export const getTechnicianAssignments = createServerFn({ method: "GET" })
       .from("request_assignments")
       .select(
         `id, status, accepted_at, completed_at, created_at, repair_notes, parts_replaced, amount,
-        repair_requests (id, customer_id, brand, model, issue_description, priority, city, pincode, address, preferred_visit_time, status, categories (name))`
+        repair_requests (id, customer_id, asset_id, amc_contract_id, response_due_at, brand, model, issue_description, priority, city, pincode, address, preferred_visit_time, status, categories (name), customer_assets(name))`
       )
       .eq("technician_id", technician.id)
       .order("created_at", { ascending: false });
