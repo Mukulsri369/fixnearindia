@@ -259,7 +259,7 @@ export const getRequestInterests = createServerFn({ method: "GET" })
     const { data: interests, error } = await context.supabase
       .from("request_assignments")
       .select(
-        `id, status, created_at, accepted_at, completed_at, amount, repair_notes, parts_replaced,
+        `id, technician_id, status, created_at, accepted_at, completed_at, amount, repair_notes, parts_replaced,
          technicians (id, business_name, experience_years, city, avg_rating, total_reviews, profiles (full_name, phone))`
       )
       .eq("repair_request_id", data.requestId)

@@ -91,6 +91,8 @@ export const createAmcRequest = createServerFn({ method: "POST" })
 export const getMyAmcs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    const { processAmcLifecycle } = await import("./amc-lifecycle.server");
+    await processAmcLifecycle();
     const { data, error } = await context.supabase.from("amc_requests").select(
       `id, requested_days, service_notes, city, status, created_at,
        customer_assets(id, name, brand, model),
@@ -103,13 +105,15 @@ export const getMyAmcs = createServerFn({ method: "GET" })
       amc_contracts: row.amc_contracts
         ? (Array.isArray(row.amc_contracts) ? row.amc_contracts : [row.amc_contracts])
         : [],
-    }));
+    })) as any[];
   });
 
 export const getAmcDetail = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ requestId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
+    const { processAmcLifecycle } = await import("./amc-lifecycle.server");
+    await processAmcLifecycle();
     const { data: request, error } = await context.supabase.from("amc_requests").select(
       `id, customer_id, asset_id, requested_days, service_notes, address, state, city, pincode,
        invited_technician_id, source_repair_request_id, selected_offer_id, status, created_at,
@@ -136,7 +140,7 @@ export const getAmcDetail = createServerFn({ method: "GET" })
       repairs = repairRows ?? [];
     }
     const technician = await technicianForUser(context);
-    return { request: { ...request, amc_offers: offers, amc_contracts: contracts }, contract, repairs, isCustomer: request.customer_id === context.userId, technicianId: technician?.id ?? null };
+    return { request: { ...request, amc_offers: offers, amc_contracts: contracts } as any, contract: contract as any, repairs, isCustomer: request.customer_id === context.userId, technicianId: technician?.id ?? null };
   });
 
 export const getAmcMessages = createServerFn({ method: "GET" })
@@ -173,6 +177,8 @@ export const postAmcMessage = createServerFn({ method: "POST" })
 export const getTechnicianAmcs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    const { processAmcLifecycle } = await import("./amc-lifecycle.server");
+    await processAmcLifecycle();
     const technician = await technicianForUser(context);
     if (!technician) return { isTechnician: false, isApproved: false, technicianId: null, opportunities: [], contracts: [] };
     if (!technician.is_approved) return { isTechnician: true, isApproved: false, technicianId: technician.id, opportunities: [], contracts: [] };
