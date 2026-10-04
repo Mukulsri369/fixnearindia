@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { Box, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Box, Loader2, Pencil, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -137,7 +137,8 @@ function AssetsPage() {
                   <p className="text-sm font-medium">{[asset.brand, asset.model].filter(Boolean).join(" ") || "Brand and model not added"}</p>
                   <p className="mt-1 text-sm text-muted-foreground">{asset.categories?.name}</p>
                   {asset.serial_number ? <p className="mt-3 text-xs text-muted-foreground">Serial: {asset.serial_number}</p> : null}
-                  <div className="mt-5 flex gap-2">
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    <Button asChild size="sm"><Link to="/new-amc" search={{ assetId: asset.id }}><ShieldCheck className="mr-2 h-3.5 w-3.5" /> AMC</Link></Button>
                     <Button variant="outline" size="sm" onClick={() => openEdit(asset)}><Pencil className="mr-2 h-3.5 w-3.5" /> Edit</Button>
                     <Button variant="ghost" size="sm" onClick={() => remove(asset.id)}><Trash2 className="mr-2 h-3.5 w-3.5" /> Remove</Button>
                   </div>

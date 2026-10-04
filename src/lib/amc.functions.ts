@@ -98,7 +98,12 @@ export const getMyAmcs = createServerFn({ method: "GET" })
          technicians(id, business_name, profiles(full_name, phone)))`
     ).eq("customer_id", context.userId).order("created_at", { ascending: false });
     if (error) throw new Error(`Failed to load AMCs: ${error.message}`);
-    return data ?? [];
+    return (data ?? []).map((row) => ({
+      ...row,
+      amc_contracts: row.amc_contracts
+        ? (Array.isArray(row.amc_contracts) ? row.amc_contracts : [row.amc_contracts])
+        : [],
+    }));
   });
 
 export const getAmcDetail = createServerFn({ method: "GET" })
@@ -116,7 +121,13 @@ export const getAmcDetail = createServerFn({ method: "GET" })
     ).eq("id", data.requestId).maybeSingle();
     if (error || !request) throw new Error("AMC request not found");
 
-    const contract = request.amc_contracts?.[0] ?? null;
+    const offers = request.amc_offers
+      ? (Array.isArray(request.amc_offers) ? request.amc_offers : [request.amc_offers])
+      : [];
+    const contracts = request.amc_contracts
+      ? (Array.isArray(request.amc_contracts) ? request.amc_contracts : [request.amc_contracts])
+      : [];
+    const contract = contracts[0] ?? null;
     let repairs: any[] = [];
     if (contract) {
       const { data: repairRows } = await context.supabase.from("repair_requests").select(
@@ -125,7 +136,7 @@ export const getAmcDetail = createServerFn({ method: "GET" })
       repairs = repairRows ?? [];
     }
     const technician = await technicianForUser(context);
-    return { request, contract, repairs, isCustomer: request.customer_id === context.userId, technicianId: technician?.id ?? null };
+    return { request: { ...request, amc_offers: offers, amc_contracts: contracts }, contract, repairs, isCustomer: request.customer_id === context.userId, technicianId: technician?.id ?? null };
   });
 
 export const getAmcMessages = createServerFn({ method: "GET" })

@@ -84,6 +84,7 @@ export const getAvailableRequests = createServerFn({ method: "GET" })
          preferred_visit_time, status, created_at, categories (name)`
       )
       .eq("status", "open")
+      .is("amc_contract_id", null)
       .in("category_id", categoryIds)
       .order("created_at", { ascending: false })
       .limit(200);

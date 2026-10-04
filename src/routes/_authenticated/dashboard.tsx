@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import { queryOptions } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Box, Loader2, LogOut, User, Wrench, MapPin, Star } from "lucide-react";
+import { Box, Loader2, LogOut, User, Wrench, MapPin, Star, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -191,6 +191,9 @@ function DashboardPage() {
                   <Link to="/requests">
                     <Button variant="outline" className="w-full">My Requests</Button>
                   </Link>
+                  <Link to="/amcs">
+                    <Button variant="outline" className="w-full"><ShieldCheck className="mr-2 h-4 w-4" /> My AMC</Button>
+                  </Link>
                   {!isTechnicianApproved && !hasTechnicianApplication ? (
                     <Link to="/register-technician">
                       <Button variant="outline" className="w-full">Become a Technician</Button>
@@ -208,6 +211,9 @@ function DashboardPage() {
                       </Link>
                       <Link to="/technician-requests">
                         <Button variant="outline" className="w-full">My Jobs</Button>
+                      </Link>
+                      <Link to="/technician-amcs">
+                        <Button variant="outline" className="w-full">AMC Requests</Button>
                       </Link>
                     </>
                   ) : null}

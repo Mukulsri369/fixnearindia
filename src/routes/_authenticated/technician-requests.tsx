@@ -153,6 +153,12 @@ function TechnicianRequestsPage() {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <p className="text-sm">{req?.issue_description}</p>
+                    {req?.amc_contract_id && (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge>AMC repair</Badge>
+                        {req.response_due_at ? <span className="text-xs text-muted-foreground">Response due {new Date(req.response_due_at).toLocaleString()}</span> : null}
+                      </div>
+                    )}
                     {isActive && (
                       <>
                         <p className="flex items-center gap-1 text-sm text-muted-foreground">
