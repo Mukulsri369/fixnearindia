@@ -34,7 +34,7 @@ export const createRepairRequest = createServerFn({ method: "POST" })
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.rpc("process_amc_expiry_and_reminders" as never).catch(() => undefined);
+    await supabaseAdmin.rpc("process_amc_expiry_and_reminders" as never);
     const { data: activeAmc } = await supabaseAdmin
       .from("amc_contracts")
       .select("id, technician_id, response_sla_hours")

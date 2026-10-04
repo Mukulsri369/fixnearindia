@@ -3,7 +3,7 @@ import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, FileText, Loader2, MapPin, Phone, Star, User } from "lucide-react";
+import { ArrowLeft, FileText, Loader2, MapPin, Phone, ShieldCheck, Star, User } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -175,6 +175,13 @@ function RequestDetailPage() {
                     <Button asChild variant="outline">
                       <Link to="/bill/$id" params={{ id }}>
                         <FileText className="mr-2 h-4 w-4" /> GST bill
+                      </Link>
+                    </Button>
+                  )}
+                  {invoice.status === "paid" && accepted?.technician_id && request.asset_id && !request.amc_contract_id && (
+                    <Button asChild>
+                      <Link to="/new-amc" search={{ assetId: request.asset_id, repairId: id, technicianId: accepted.technician_id }}>
+                        <ShieldCheck className="mr-2 h-4 w-4" /> Convert to AMC
                       </Link>
                     </Button>
                   )}
