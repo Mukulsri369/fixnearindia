@@ -118,12 +118,13 @@ export const getAmcDetail = createServerFn({ method: "GET" })
       `id, customer_id, asset_id, requested_days, service_notes, address, state, city, pincode,
        invited_technician_id, source_repair_request_id, selected_offer_id, status, created_at,
        customer_assets(id, name, brand, model, serial_number, categories(name)),
-       amc_offers(id, technician_id, price, coverage_details, terms, status, paid_at, created_at,
+        amc_offers!amc_offers_amc_request_id_fkey(id, technician_id, price, coverage_details, terms, status, paid_at, created_at,
          technicians(id, business_name, city, experience_years, avg_rating, profiles(full_name, phone))),
        amc_contracts(id, technician_id, duration_days, price, response_sla_hours, starts_at, ends_at,
          status, paid_at, cancelled_at, cancellation_reason, technicians(id, business_name, profiles(full_name, phone)))`
     ).eq("id", data.requestId).maybeSingle();
-    if (error || !request) throw new Error("AMC request not found");
+    if (error) throw new Error(`Failed to load AMC request: ${error.message}`);
+    if (!request) throw new Error("AMC request not found or you do not have access");
 
     const offers = request.amc_offers
       ? (Array.isArray(request.amc_offers) ? request.amc_offers : [request.amc_offers])

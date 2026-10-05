@@ -16,8 +16,14 @@ export const Route = createFileRoute("/_authenticated/amc/$id")({
     { title: "AMC Details — FixNear India" }, { name: "description", content: "Review AMC offers, coverage, status, and asset repair history." },
     { property: "og:title", content: "AMC Details — FixNear India" }, { property: "og:description", content: "Review an asset AMC and its service history." },
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
-  ] }), loader: ({ context, params }) => context.queryClient.ensureQueryData(detailQuery(params.id)), component: AmcDetailPage,
+  ] }),
+  loader: ({ context, params }) => context.queryClient.ensureQueryData(detailQuery(params.id)),
+  component: AmcDetailPage,
+  errorComponent: AmcDetailError,
 });
+function AmcDetailError() {
+  return <div className="px-4 py-20 sm:px-6"><div className="mx-auto max-w-lg text-center"><ShieldCheck className="mx-auto h-10 w-10 text-muted-foreground" /><h1 className="mt-4 text-2xl font-semibold">AMC unavailable</h1><p className="mt-2 text-muted-foreground">This AMC request no longer exists, or it is not available to your account.</p><Button asChild className="mt-6"><Link to="/amcs">View my AMC requests</Link></Button></div></div>;
+}
 function daysLeft(date: string) { return Math.max(0, Math.ceil((new Date(date).getTime() - Date.now()) / 86400000)); }
 function AmcDetailPage() {
   const { id } = useParams({ from: "/_authenticated/amc/$id" }); const { data } = useSuspenseQuery(detailQuery(id)); const client = useQueryClient();
