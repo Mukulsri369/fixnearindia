@@ -22,7 +22,17 @@ const profileQueryOptions = () =>
 const roleQueryOptions = () =>
   queryOptions({
     queryKey: ["role"],
-    queryFn: () => getCurrentUserRole(),
+    queryFn: async () => {
+      const roleData = await getCurrentUserRole();
+      return roleData ?? {
+        role: "customer",
+        roles: ["customer"],
+        isAdmin: false,
+        isTechnician: false,
+        hasTechnicianApplication: false,
+        isTechnicianApproved: false,
+      };
+    },
   });
 
 const myRequestsQueryOptions = () =>
@@ -36,13 +46,18 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
     meta: [
       { title: "Dashboard — FixNear India" },
       { name: "description", content: "Manage your repair requests and technician profile on FixNear India." },
+      { property: "og:title", content: "Dashboard — FixNear India" },
+      { property: "og:description", content: "Manage your repair requests and technician profile on FixNear India." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
-  loader: ({ context }) => {
-    context.queryClient.ensureQueryData(profileQueryOptions());
-    context.queryClient.ensureQueryData(roleQueryOptions());
-    context.queryClient.ensureQueryData(myRequestsQueryOptions());
-  },
+  loader: ({ context }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(profileQueryOptions()),
+      context.queryClient.ensureQueryData(roleQueryOptions()),
+      context.queryClient.ensureQueryData(myRequestsQueryOptions()),
+    ]),
   component: DashboardPage,
 });
 
