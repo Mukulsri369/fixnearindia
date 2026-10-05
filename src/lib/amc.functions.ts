@@ -184,7 +184,7 @@ export const getTechnicianAmcs = createServerFn({ method: "GET" })
     if (!technician.is_approved) return { isTechnician: true, isApproved: false, technicianId: technician.id, opportunities: [], contracts: [] };
     const categoryIds = (technician.technician_categories ?? []).map((row: any) => row.category_id);
     let query = context.supabase.from("amc_requests").select(
-      "id, requested_days, service_notes, city, state, pincode, invited_technician_id, status, created_at, customer_assets(id, name, brand, model, categories(name)), amc_offers(id, technician_id, price, status)"
+      "id, requested_days, service_notes, city, state, pincode, invited_technician_id, status, created_at, customer_assets(id, name, brand, model, categories(name)), amc_offers!amc_offers_amc_request_id_fkey(id, technician_id, price, status)"
     ).eq("status", "open").order("created_at", { ascending: false });
     if (categoryIds.length) query = query.in("category_id", categoryIds);
     const { data: opportunities, error } = await query;
