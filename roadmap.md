@@ -5,4 +5,4 @@
 - [x] Add technician AMC opportunities, contracts, and asset repair history.
 - [x] Route repairs under active AMC directly to the contracted technician with a six-hour response SLA.
 - [x] Add completed-repair conversion to a targeted AMC request.
-- [ ] Verify permissions, lifecycle, repair routing, reminders, layouts, and build health.
+- [x] Verify permissions, lifecycle, repair routing, reminders, layouts, and build health.
