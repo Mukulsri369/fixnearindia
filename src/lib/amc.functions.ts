@@ -177,7 +177,11 @@ export const postAmcMessage = createServerFn({ method: "POST" })
 
 export const getTechnicianAmcs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input) => z.object({
+    state: z.string().trim().max(100).nullable().optional(),
+    city: z.string().trim().max(100).nullable().optional(),
+  }).parse(input ?? {}))
+  .handler(async ({ data, context }) => {
     const { processAmcLifecycle } = await import("./amc-lifecycle.server");
     await processAmcLifecycle();
     const technician = await technicianForUser(context);
@@ -191,11 +195,17 @@ export const getTechnicianAmcs = createServerFn({ method: "GET" })
     const { data: opportunities, error } = await query;
     if (error) throw new Error(`Failed to load AMC requests: ${error.message}`);
     const visible = (opportunities ?? []).filter((row: any) => !row.invited_technician_id || row.invited_technician_id === technician.id);
+    const selectedState = data.state?.trim() || null;
+    const selectedCity = data.city?.trim() || null;
+    const filtered = visible.filter((row: any) =>
+      (!selectedState || row.state === selectedState) &&
+      (!selectedCity || (row.city ?? "").toLowerCase() === selectedCity.toLowerCase())
+    );
     const { data: contracts, error: contractError } = await context.supabase.from("amc_contracts").select(
       "id, amc_request_id, asset_id, duration_days, price, starts_at, ends_at, status, response_sla_hours, amc_requests(city, customer_assets(id, name, brand, model))"
     ).eq("technician_id", technician.id).order("created_at", { ascending: false });
     if (contractError) throw new Error(`Failed to load AMC contracts: ${contractError.message}`);
-    return { isTechnician: true, isApproved: true, technicianId: technician.id, opportunities: visible, contracts: contracts ?? [] };
+    return { isTechnician: true, isApproved: true, technicianId: technician.id, opportunities: filtered, contracts: contracts ?? [] };
   });
 
 export const submitAmcOffer = createServerFn({ method: "POST" })

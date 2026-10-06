@@ -2,6 +2,45 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+async function isCurrentUserAdmin(context: any) {
+  const { data } = await context.supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", context.userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  return Boolean(data);
+}
+
+export const getAdminRequestOverview = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    if (!(await isCurrentUserAdmin(context))) {
+      return { authorized: false, repairRequests: [], amcRequests: [] };
+    }
+
+    const [repairsResult, amcsResult] = await Promise.all([
+      context.supabase
+        .from("repair_requests")
+        .select("id, brand, model, issue_description, city, state, status, created_at, categories(name), customer_assets(name)")
+        .order("created_at", { ascending: false })
+        .limit(300),
+      context.supabase
+        .from("amc_requests")
+        .select("id, requested_days, service_notes, city, state, status, created_at, customer_assets(name, brand, model, categories(name))")
+        .order("created_at", { ascending: false })
+        .limit(300),
+    ]);
+
+    if (repairsResult.error) throw new Error(`Failed to load repair requests: ${repairsResult.error.message}`);
+    if (amcsResult.error) throw new Error(`Failed to load AMC requests: ${amcsResult.error.message}`);
+    return {
+      authorized: true,
+      repairRequests: repairsResult.data ?? [],
+      amcRequests: amcsResult.data ?? [],
+    };
+  });
+
 export const listAdmins = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
