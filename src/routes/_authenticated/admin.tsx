@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -21,7 +21,7 @@ import {
   setCatalogRequestStatus,
   setOnboardingStatus,
 } from "@/lib/onboarding.functions";
-import { grantAdminByEmail, listAdmins, revokeAdmin } from "@/lib/admin-users.functions";
+import { getAdminRequestOverview, grantAdminByEmail, listAdmins, revokeAdmin } from "@/lib/admin-users.functions";
 import { ONBOARDING_STATUS_LABELS, SEGMENTS } from "@/lib/technician-catalog";
 
 const applicationsQueryOptions = () =>
@@ -113,6 +113,7 @@ function AdminPage() {
         <Tabs defaultValue="applications">
           <TabsList>
             <TabsTrigger value="applications">Applications ({applications.length})</TabsTrigger>
+            <TabsTrigger value="requests">Repair & AMC requests</TabsTrigger>
             <TabsTrigger value="catalog">Catalog requests</TabsTrigger>
             <TabsTrigger value="admins">Admins</TabsTrigger>
           </TabsList>
@@ -146,6 +147,10 @@ function AdminPage() {
             )}
           </TabsContent>
 
+          <TabsContent value="requests" className="mt-6">
+            <AdminRequestOverview />
+          </TabsContent>
+
           <TabsContent value="catalog" className="mt-6">
             <CatalogRequests />
           </TabsContent>
@@ -156,6 +161,51 @@ function AdminPage() {
         </Tabs>
       </div>
     </div>
+  );
+}
+
+function AdminRequestOverview() {
+  const load = useServerFn(getAdminRequestOverview);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["admin-request-overview"],
+    queryFn: () => load(),
+    retry: false,
+  });
+
+  if (isLoading) return <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />;
+  if (error) return <p className="text-sm text-destructive">{error instanceof Error ? error.message : "Could not load requests"}</p>;
+  if (!data?.authorized) return <p className="text-sm text-muted-foreground">Admin access required.</p>;
+
+  return (
+    <div className="space-y-8">
+      <RequestList title="All repair requests" items={data.repairRequests} type="repair" />
+      <RequestList title="All AMC requests" items={data.amcRequests} type="amc" />
+    </div>
+  );
+}
+
+function RequestList({ title, items, type }: { title: string; items: any[]; type: "repair" | "amc" }) {
+  return (
+    <section>
+      <h2 className="text-xl font-semibold">{title} ({items.length})</h2>
+      {items.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">No requests found.</p> : (
+        <div className="mt-4 space-y-3">
+          {items.map((item) => {
+            const asset = type === "amc" ? item.customer_assets : null;
+            const name = type === "repair"
+              ? [item.brand, item.model].filter(Boolean).join(" ") || item.customer_assets?.name || "Repair request"
+              : [asset?.brand, asset?.model].filter(Boolean).join(" ") || asset?.name || "AMC request";
+            const category = type === "repair" ? item.categories?.name : asset?.categories?.name;
+            return (
+              <Link key={item.id} to={type === "repair" ? "/request/$id" : "/amc/$id"} params={{ id: item.id }} className="flex flex-col gap-2 rounded-lg border p-4 transition-colors hover:border-primary/40 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0"><p className="font-medium">{name}</p><p className="text-sm text-muted-foreground">{category || "Uncategorised"} • {[item.city, item.state].filter(Boolean).join(", ") || "Location unavailable"} • {new Date(item.created_at).toLocaleDateString("en-IN")}</p></div>
+                <Badge variant="secondary" className="w-fit capitalize">{item.status ?? "open"}</Badge>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 }
 
