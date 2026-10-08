@@ -12,6 +12,8 @@ import { getCurrentUserProfile, getCurrentUserRole, signOut } from "@/lib/auth.f
 import { getMyRepairRequests } from "@/lib/repairs.functions";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
+import { AdminRequestOverview } from "@/components/AdminRequestOverview";
+import { canViewDashboardRating } from "@/lib/request-view-rules";
 
 const profileQueryOptions = () =>
   queryOptions({
@@ -134,7 +136,7 @@ function DashboardPage() {
                 <div className="text-2xl font-bold">{myRequests.length}</div>
               </CardContent>
             </Card>
-            {isTechnician ? (
+            {canViewDashboardRating(isTechnician) ? (
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium">Rating</CardTitle>
@@ -236,7 +238,7 @@ function DashboardPage() {
                   ) : null}
                   {isAdmin ? (
                     <Link to="/admin">
-                      <Button variant="outline" className="w-full">Technician Approvals</Button>
+                      <Button variant="outline" className="w-full">Admin Dashboard</Button>
                     </Link>
                   ) : null}
                   <Link to="/profile">
@@ -246,6 +248,7 @@ function DashboardPage() {
               </Card>
             </div>
           </div>
+          {isAdmin ? <div className="mt-10 border-t border-border pt-8"><AdminRequestOverview /></div> : null}
         </motion.div>
       </div>
     </div>

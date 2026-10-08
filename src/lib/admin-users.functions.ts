@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { canViewAllRequests } from "./request-view-rules";
 
 async function isCurrentUserAdmin(context: any) {
   const { data } = await context.supabase
@@ -9,27 +10,31 @@ async function isCurrentUserAdmin(context: any) {
     .eq("user_id", context.userId)
     .eq("role", "admin")
     .maybeSingle();
-  return Boolean(data);
+  return canViewAllRequests(data ? [data.role] : []);
 }
 
 export const getAdminRequestOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input) => z.object({ page: z.number().int().min(1).default(1) }).parse(input ?? {}))
+  .handler(async ({ data, context }) => {
     if (!(await isCurrentUserAdmin(context))) {
-      return { authorized: false, repairRequests: [], amcRequests: [] };
+      return { authorized: false, repairRequests: [], amcRequests: [], repairCount: 0, amcCount: 0 };
     }
 
+    const offset = (data.page - 1) * 100;
     const [repairsResult, amcsResult] = await Promise.all([
       context.supabase
         .from("repair_requests")
-        .select("id, brand, model, issue_description, city, state, status, created_at, categories(name), customer_assets(name)")
+        .select("id, brand, model, issue_description, city, state, status, created_at, categories(name), customer_assets(name)", { count: "exact" })
         .order("created_at", { ascending: false })
-        .limit(300),
+        .order("id")
+        .range(offset, offset + 99),
       context.supabase
         .from("amc_requests")
-        .select("id, requested_days, service_notes, city, state, status, created_at, customer_assets(name, brand, model, categories(name))")
+        .select("id, requested_days, service_notes, city, state, status, created_at, customer_assets(name, brand, model, categories(name))", { count: "exact" })
         .order("created_at", { ascending: false })
-        .limit(300),
+        .order("id")
+        .range(offset, offset + 99),
     ]);
 
     if (repairsResult.error) throw new Error(`Failed to load repair requests: ${repairsResult.error.message}`);
@@ -38,6 +43,8 @@ export const getAdminRequestOverview = createServerFn({ method: "GET" })
       authorized: true,
       repairRequests: repairsResult.data ?? [],
       amcRequests: amcsResult.data ?? [],
+      repairCount: repairsResult.count ?? 0,
+      amcCount: amcsResult.count ?? 0,
     };
   });
 
