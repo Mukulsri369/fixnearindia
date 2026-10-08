@@ -12,3 +12,5 @@
 - Customer repair requests must reference an owned `customer_assets` record; this keeps each job tied to a verified asset while preserving legacy requests.
 - AMC lifecycle mutations use authenticated server functions with privileged writes only after ownership or technician checks; this keeps multi-row offer, payment, cancellation, and assignment transitions consistent.
 - Admin-wide request lists use authenticated, role-checked server functions through the caller-scoped database client; this preserves row-level security as defense in depth.
+- Share the paginated admin request overview between the main dashboard and admin console; this keeps both lists consistent without truncating access.
+- Keep request visibility and location rules in a browser-safe module with focused tests; this verifies permissions and filters independently of presentation.
